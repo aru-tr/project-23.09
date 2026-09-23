@@ -27,3 +27,427 @@ function renderDeadlines(){let now=new Date('2026-09-23');let html=tasks.map(x=>
 function feedbackForm(type){let arr=type==='b2s'?(lang==='kk'?['Жұмыс сапасы','Коммуникация','Дедлайн сақтау','Жалпы рейтинг']:lang==='ru'?['Качество работы','Коммуникация','Соблюдение дедлайна','Общий рейтинг']:['Work quality','Communication','Deadline adherence','Overall rating']):(lang==='kk'?['Тапсырманың анықтығы','Коммуникация','Кері байланыс','Жалпы рейтинг']:lang==='ru'?['Ясность задачи','Коммуникация','Обратная связь','Общий рейтинг']:['Task clarity','Communication','Feedback','Overall rating']);return arr.map((x,i)=>`<div class="field"><label>${x}</label><select id="${type}${i}">${[5,4,3,2,1].map(n=>`<option>${n}</option>`).join('')}</select></div>`).join('')+`<div class="field"><label>${t('feedback')}</label><textarea id="${type}text"></textarea></div>`}function saveFeedback(type){let avg=[0,1,2,3].reduce((a,i)=>a+Number(document.getElementById(type+i).value),0)/4;feedbacks.push({type,avg});if(type==='b2s')studentRating.textContent=avg.toFixed(1)+'/5';else businessRating.textContent=avg.toFixed(1)+'/5';toastMsg(lang==='kk'?'Пікір сақталды':lang==='ru'?'Отзыв сохранен':'Feedback saved')}
 function renderAll(){renderCatalog();renderDecisions();renderDeadlines();b2sFields.innerHTML=feedbackForm('b2s');s2bFields.innerHTML=feedbackForm('s2b');if(current)calc()}cv.onchange=()=>cvname.textContent=cv.files[0]?.name||t('noFile');notify.onclick=()=>toastMsg(lang==='kk'?'Internship Platform дедлайны жақындап қалды.':lang==='ru'?'Дедлайн Internship Platform приближается.':'Internship Platform deadline is approaching.');access.onclick=()=>accessModal.classList.add('open');closeAccess.onclick=()=>accessModal.classList.remove('open');fontUp.onclick=()=>document.documentElement.style.setProperty('--fs','18px');fontDown.onclick=()=>document.documentElement.style.setProperty('--fs','14px');contrast.onclick=()=>document.documentElement.classList.toggle('contrast');simple.onclick=()=>document.documentElement.classList.toggle('simple');speak.onclick=()=>{speechSynthesis.cancel();speechSynthesis.speak(new SpeechSynthesisUtterance(document.querySelector('.section.active').innerText))};function toastMsg(s){toast.textContent=s;toast.style.display='block';setTimeout(()=>toast.style.display='none',1800)}function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}applyLang();
 </script></body></html>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>IdeaMatch</title>
+<style>
+:root{--bg:#f6f8fc;--card:#fff;--ink:#142033;--muted:#667085;--line:#e4e7ec;--accent:#2563eb;--accent2:#eff6ff;--good:#067647;--danger:#b42318;--warn:#b54708;--radius:16px;--font:16px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:var(--font);line-height:1.5}
+body.high-contrast{--bg:#000;--card:#0d0d0d;--ink:#fff;--muted:#e5e5e5;--line:#fff;--accent:#ffdf00;--accent2:#242000}
+body.simple .muted-extra,body.simple .optional{display:none!important}
+button,input,textarea,select{font:inherit}
+button{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:700}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,a:focus-visible{outline:3px solid #93c5fd;outline-offset:2px}
+input,textarea,select{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink)}
+textarea{min-height:92px;resize:vertical}
+label{display:block;font-size:.86em;font-weight:750;margin:10px 0 5px}
+header{position:sticky;top:0;z-index:30;min-height:66px;padding:12px 22px;background:#0f172a;color:#fff;display:flex;justify-content:space-between;align-items:center;gap:14px}
+.brand{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.langs{display:flex;background:#1e293b;border-radius:10px;padding:3px}
+.langs button{padding:7px 9px;background:transparent;color:#cbd5e1}
+.langs button.active{background:#fff;color:#0f172a}
+.header-actions>button{background:#fff;color:#111827}
+.shell{display:grid;grid-template-columns:228px minmax(0,1fr);min-height:calc(100vh - 66px)}
+.sidebar{background:var(--card);border-right:1px solid var(--line);padding:18px 12px;position:sticky;top:66px;height:calc(100vh - 66px);overflow:auto}
+.sidebar button{display:flex;width:100%;text-align:left;margin:4px 0;background:transparent;color:var(--ink);padding:11px 12px}
+.sidebar button.active{background:var(--accent2);color:var(--accent)}
+main{padding:28px;max-width:1250px;width:100%;margin:0 auto}
+.panel{display:none}.panel.active{display:block}
+.page-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:18px}
+h1,h2,h3{margin:0 0 8px;line-height:1.2}h1{font-size:clamp(28px,4vw,42px)}h2{font-size:25px}h3{font-size:18px}
+p{margin:7px 0 12px}
+.card,.hero-box,.stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:0 4px 18px rgba(15,23,42,.035)}
+.card{margin-bottom:16px}
+.hero{padding:26px;background:var(--card);border:1px solid var(--line);border-radius:20px;margin-bottom:16px}
+.hero p.lead{font-size:1.05em;color:var(--muted);max-width:720px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:16px 0}
+.stat b{display:block;font-size:28px}
+.muted{color:var(--muted)}.small{font-size:.84em}
+.primary{background:var(--accent);color:#fff}.secondary{background:var(--accent2);color:var(--accent)}.success{background:#dcfae6;color:#05603a}.danger{background:#fee4e2;color:#912018}
+.pill,.tag{display:inline-block;border-radius:999px;font-size:.78em;font-weight:800}
+.pill{padding:5px 9px;background:var(--accent2);color:var(--accent)}
+.tag{padding:4px 8px;border:1px solid var(--line);margin:2px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+.task{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:start}
+.score{font-size:40px;font-weight:900}.bar{height:11px;background:#e5e7eb;border-radius:20px;overflow:hidden}.bar i{display:block;height:100%;background:var(--accent)}
+.notice{padding:13px 14px;border-left:4px solid #f59e0b;background:#fffbeb;color:#713f12;border-radius:10px;margin-bottom:12px}
+.high-contrast .notice{background:#211b00;color:#fff}
+.question{padding:13px;border-left:4px solid var(--accent);background:var(--accent2);border-radius:10px;margin:9px 0}
+.review{padding:15px 0;border-top:1px solid var(--line)}.review:first-child{border-top:0}
+.stars{letter-spacing:1px;color:#b7791f}
+.progress-label{display:flex;justify-content:space-between;gap:12px}
+.empty{padding:22px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.toast{position:fixed;right:18px;bottom:18px;z-index:50;max-width:360px;background:#0f172a;color:#fff;padding:12px 16px;border-radius:11px;display:none;box-shadow:0 10px 30px #0003}
+.access-menu{position:fixed;right:18px;top:76px;z-index:45;width:270px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 15px 40px #0002;display:none}
+.access-menu.open{display:block}.access-menu button{width:100%;margin:4px 0;text-align:left;background:var(--accent2);color:var(--accent)}
+.file-note{padding:9px 11px;background:var(--accent2);border-radius:9px;margin-top:7px}
+a{color:var(--accent)}
+@media(max-width:820px){
+ header{position:static}.shell{display:block}.sidebar{position:static;height:auto;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:9px}.sidebar button{min-width:max-content;width:auto}
+ main{padding:18px}.grid,.grid3,.stats,.task{grid-template-columns:1fr}.header-actions{width:100%}.access-menu{top:120px}.page-head{display:block}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">IdeaMatch</div>
+  <div class="header-actions">
+    <div class="langs" aria-label="Language">
+      <button type="button" data-lang="kk" onclick="setLang('kk')">KZ</button>
+      <button type="button" data-lang="ru" onclick="setLang('ru')">RU</button>
+      <button type="button" data-lang="en" onclick="setLang('en')">EN</button>
+    </div>
+    <button type="button" onclick="toggleAccess()" data-i18n="accessibility" aria-label="Accessibility">Қолжетімділік</button>
+  </div>
+</header>
+
+<div id="accessMenu" class="access-menu" role="dialog" aria-label="Accessibility controls">
+  <button onclick="changeFont(1)" data-i18n="fontUp">Мәтінді үлкейту</button>
+  <button onclick="changeFont(-1)" data-i18n="fontDown">Мәтінді кішірейту</button>
+  <button onclick="toggleContrast()" data-i18n="contrast">Жоғары контраст</button>
+  <button onclick="toggleSimple()" data-i18n="simpleMode">Қарапайым интерфейс</button>
+  <button onclick="speakPage()" data-i18n="readAloud">Мәтінді дауыстап оқу</button>
+</div>
+
+<div class="shell">
+<nav class="sidebar" aria-label="Main navigation">
+  <button class="active" data-tab="home"><span data-i18n="navHome">Басты бет</span></button>
+  <button data-tab="create"><span data-i18n="navCreate">Жаңа тапсырма</span></button>
+  <button data-tab="rating"><span data-i18n="navRating">AI рейтинг</span></button>
+  <button data-tab="catalog"><span data-i18n="navCatalog">Каталог</span></button>
+  <button data-tab="profiles"><span data-i18n="navProfiles">Профильдер</span></button>
+  <button data-tab="deadlines"><span data-i18n="navDeadlines">Дедлайндар</span></button>
+  <button data-tab="proposal"><span data-i18n="navProposals">Ұсыныстар</span></button>
+  <button data-tab="decision"><span data-i18n="navDecision">Шешім</span></button>
+  <button data-tab="feedback"><span data-i18n="navFeedback">Пікірлер</span></button>
+</nav>
+
+<main>
+<section id="home" class="panel active">
+  <div class="hero">
+    <h1>IdeaMatch</h1>
+    <p class="lead" data-i18n="tagline">Бизнес идеясын студенттік шешіммен байланыстыратын платформа</p>
+    <div class="grid3">
+      <div class="hero-box"><h3 data-i18n="what">НЕ?</h3><p data-i18n="whatText">Бизнестің бастапқы идеясын AI көмегімен нақты Task Card-қа айналдырады.</p></div>
+      <div class="hero-box"><h3 data-i18n="why">НЕГЕ?</h3><p data-i18n="whyText">Толық емес және түсініксіз бизнес тапсырмаларын нақтылайды.</p></div>
+      <div class="hero-box"><h3 data-i18n="who">КІМГЕ?</h3><p data-i18n="whoText">Бизнес өкілдері мен студенттік командаларға.</p></div>
+    </div>
+  </div>
+  <div class="stats">
+    <div class="stat"><b id="statOpen">4</b><span data-i18n="openTasks">Ашық тапсырмалар</span></div>
+    <div class="stat"><b id="statStudents">3</b><span data-i18n="students">Студенттер</span></div>
+    <div class="stat"><b id="statProposals">0</b><span data-i18n="proposals">Ұсыныстар</span></div>
+    <div class="stat"><b id="statActive">0</b><span data-i18n="activeProjects">Белсенді жобалар</span></div>
+  </div>
+  <div class="card"><h2 data-i18n="nearDeadlines">Жақын дедлайндар</h2><div id="homeDeadlines"></div></div>
+</section>
+
+<section id="create" class="panel">
+  <div class="page-head"><div><h2 data-i18n="newTask">Жаңа тапсырма</h2><p class="muted" data-i18n="newTaskHint">Бастапқы бизнес проблемасын енгізіңіз. Demo AI тек сіз берген ақпаратты құрылымдайды.</p></div></div>
+  <div class="card">
+    <label for="raw" data-i18n="problem">Бизнес проблемасы</label>
+    <textarea id="raw" data-i18n-placeholder="problemPh" placeholder="Студенттердің практикаға өтініш беру процесін жеңілдеткіміз келеді."></textarea>
+    <div class="row" style="margin-top:12px"><button class="primary" onclick="analyze()" data-i18n="clarifyBtn">AI нақтылау</button></div>
+  </div>
+  <div id="clarify" class="card" hidden>
+    <h3 data-i18n="clarifyingQuestions">Нақтылаушы сұрақтар</h3>
+    <div id="questions"></div>
+    <div class="grid">
+      <div><label data-i18n="taskTitle">Тақырып</label><input id="titleInput" data-i18n-placeholder="titlePh" placeholder="Практикаға өтініш платформасы"></div>
+      <div><label data-i18n="users">Пайдаланушылар</label><input id="usersInput"></div>
+      <div><label data-i18n="data">Деректер</label><textarea id="dataInput"></textarea></div>
+      <div><label data-i18n="constraints">Шектеулер</label><textarea id="constraintsInput"></textarea></div>
+      <div><label data-i18n="expected">Күтілетін нәтиже</label><textarea id="resultInput"></textarea></div>
+      <div><label data-i18n="successCriteria">Табыс критерийлері</label><textarea id="successInput"></textarea></div>
+      <div><label data-i18n="businessContact">Бизнеспен байланыс</label><input id="contactInput"></div>
+      <div><label data-i18n="deadline">Дедлайн</label><input id="deadlineInput" type="date" value="2026-10-10"></div>
+    </div>
+    <button class="primary" onclick="buildCard()" data-i18n="buildCard" style="margin-top:14px">Task Card құру</button>
+  </div>
+  <div id="taskCard" class="card" hidden></div>
+</section>
+
+<section id="rating" class="panel">
+  <div class="card">
+    <h2 data-i18n="ratingTitle">Task Card толықтығы</h2>
+    <div class="score"><span id="score">0</span>/100</div>
+    <div class="bar"><i id="scorebar" style="width:0"></i></div>
+    <p><span class="pill" id="level">Жоба</span></p>
+    <div id="breakdown"></div>
+  </div>
+  <div class="card"><h3 data-i18n="missingInfo">Жетіспейтін ақпарат</h3><div id="missing"><p class="muted" data-i18n="makeCardFirst">Алдымен Task Card жасаңыз.</p></div></div>
+</section>
+
+<section id="catalog" class="panel">
+  <div class="page-head"><div><h2 data-i18n="catalogTitle">Тапсырмалар каталогы</h2><p class="muted" data-i18n="catalogHint">AI readiness score таңдау мүмкіндігін шектемейді.</p></div></div>
+  <div id="catalogList"></div>
+</section>
+
+<section id="profiles" class="panel">
+  <div class="card">
+    <h2 data-i18n="studentProfiles">Студент профильдері</h2>
+    <div id="studentProfiles"></div>
+  </div>
+  <div class="card">
+    <h2 data-i18n="businessProfiles">Бизнес профильдері</h2>
+    <div id="businessProfiles"></div>
+  </div>
+</section>
+
+<section id="deadlines" class="panel">
+  <div class="page-head"><div><h2 data-i18n="deadlinesTitle">Дедлайндар</h2><p class="muted" data-i18n="deadlineHint">Жақын мерзімдер notification center-де көрсетіледі.</p></div></div>
+  <div id="deadlineNotice"></div><div id="deadlineList"></div>
+</section>
+
+<section id="proposal" class="panel">
+  <div class="card">
+    <h2 data-i18n="proposalTitle">Proposal жіберу</h2>
+    <label data-i18n="selectedTask">Таңдалған тапсырма</label><select id="proposalTask"></select>
+    <label data-i18n="team">Студент/команда</label><select id="teamName"></select>
+    <label data-i18n="solutionIdea">Шешім идеясы</label><textarea id="idea"></textarea>
+    <label data-i18n="executionPlan">Орындау жоспары</label><textarea id="plan"></textarea>
+    <label data-i18n="technologies">Технологиялар</label><input id="tech">
+    <label data-i18n="prototype">Prototype/GitHub link</label><input id="link" type="url" placeholder="https://github.com/...">
+    <label data-i18n="members">Команда мүшелері</label><input id="members">
+    <button class="primary" onclick="submitProposal()" data-i18n="sendProposal" style="margin-top:14px">Proposal жіберу</button>
+  </div>
+</section>
+
+<section id="decision" class="panel">
+  <div class="card"><h2 data-i18n="businessDecision">Business Decision</h2><p class="muted" data-i18n="decisionHint">AI тек match көрсетеді. Соңғы шешімді бизнес өкілі қабылдайды.</p><div id="proposalList"></div></div>
+</section>
+
+<section id="feedback" class="panel">
+  <div class="card">
+    <h2 data-i18n="feedbackTitle">Feedback</h2>
+    <div class="grid">
+      <div><label data-i18n="reviewDirection">Пікір бағыты</label><select id="reviewDirection" onchange="renderReviewFields()"></select></div>
+      <div><label data-i18n="reviewTarget">Кімге?</label><select id="reviewTarget"></select></div>
+    </div>
+    <div id="reviewCriteria" class="grid"></div>
+    <label data-i18n="overallRating">Жалпы рейтинг</label><select id="reviewScore"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select>
+    <label data-i18n="textReview">Мәтіндік пікір</label><textarea id="reviewText"></textarea>
+    <button class="primary" onclick="addReview()" data-i18n="leaveReview" style="margin-top:14px">Пікір қалдыру</button>
+    <div id="reviews"></div>
+  </div>
+</section>
+</main>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script>
+const translations={
+kk:{
+accessibility:"Қолжетімділік",fontUp:"Мәтінді үлкейту",fontDown:"Мәтінді кішірейту",contrast:"Жоғары контраст",simpleMode:"Қарапайым интерфейс",readAloud:"Мәтінді дауыстап оқу",
+navHome:"Басты бет",navCreate:"Жаңа тапсырма",navRating:"AI рейтинг",navCatalog:"Каталог",navProfiles:"Профильдер",navDeadlines:"Дедлайндар",navProposals:"Ұсыныстар",navDecision:"Шешім",navFeedback:"Пікірлер",
+tagline:"Бизнес идеясын студенттік шешіммен байланыстыратын платформа",what:"НЕ?",whatText:"Бизнестің бастапқы идеясын AI көмегімен нақты Task Card-қа айналдырады.",why:"НЕГЕ?",whyText:"Толық емес және түсініксіз бизнес тапсырмаларын нақтылайды.",who:"КІМГЕ?",whoText:"Бизнес өкілдері мен студенттік командаларға.",
+openTasks:"Ашық тапсырмалар",students:"Студенттер",proposals:"Ұсыныстар",activeProjects:"Белсенді жобалар",nearDeadlines:"Жақын дедлайндар",
+newTask:"Жаңа тапсырма",newTaskHint:"Бастапқы бизнес проблемасын енгізіңіз. Demo AI тек сіз берген ақпаратты құрылымдайды.",problem:"Бизнес проблемасы",problemPh:"Студенттердің практикаға өтініш беру процесін жеңілдеткіміз келеді.",clarifyBtn:"AI нақтылау",clarifyingQuestions:"Нақтылаушы сұрақтар",
+taskTitle:"Тақырып",titlePh:"Практикаға өтініш платформасы",users:"Пайдаланушылар",data:"Деректер",constraints:"Шектеулер",expected:"Күтілетін нәтиже",successCriteria:"Табыс критерийлері",businessContact:"Бизнеспен байланыс",deadline:"Дедлайн",buildCard:"Task Card құру",
+q1:"Негізгі проблема қандай?",q2:"Кім қолданады?",q3:"Қандай нәтиже күтіледі?",q4:"Қандай деректер бар?",q5:"Қандай шектеулер бар?",q6:"Нәтижені қалай бағалаймыз?",
+ratingTitle:"Task Card толықтығы",missingInfo:"Жетіспейтін ақпарат",makeCardFirst:"Алдымен Task Card жасаңыз.",draft:"Жоба",working:"Жұмыс",ready:"Дайын",priority:"Басым",complete:"Ақпарат жеткілікті. Task Card жариялауға дайын.",
+catalogTitle:"Тапсырмалар каталогы",catalogHint:"AI readiness score таңдау мүмкіндігін шектемейді.",company:"Компания",skills:"Қажетті дағдылар",readiness:"AI readiness score",proposalCount:"Proposal саны",viewFull:"Толық көру",chooseTask:"Таңдау",
+studentProfiles:"Студент профильдері",businessProfiles:"Бизнес профильдері",specialty:"Мамандығы",cv:"CV",uploadCV:"CV жүктеу",previousProjects:"Алдыңғы жобалары",portfolio:"Portfolio/GitHub",rating:"Рейтинг",reviews:"Пікірлер",aiMatch:"AI Match",aiMatchHint:"AI Match — тек ұсыныс. Автоматты қабылдау жоқ.",industry:"Сала",publishedTasks:"Жарияланған тапсырмалар",completedProjects:"Аяқталған жобалар",studentReviews:"Студенттердің пікірлері",responseRate:"Response rate",
+deadlinesTitle:"Дедлайндар",deadlineHint:"Жақын мерзімдер notification center-де көрсетіледі.",daysLeft:"күн қалды",today:"бүгін",overdue:"мерзімі өтті",status:"Статус",open:"Ашық",soon:"Жақын",reminder:"Еске салу",
+proposalTitle:"Proposal жіберу",selectedTask:"Таңдалған тапсырма",team:"Студент/команда",solutionIdea:"Шешім идеясы",executionPlan:"Орындау жоспары",technologies:"Технологиялар",prototype:"Prototype/GitHub link",members:"Команда мүшелері",sendProposal:"Proposal жіберу",
+businessDecision:"Business Decision",decisionHint:"AI тек match көрсетеді. Соңғы шешімді бизнес өкілі қабылдайды.",plan:"Жоспар",accept:"Қабылдау",reject:"Қабылдамау",waiting:"Күтуде",accepted:"Қабылданды",rejected:"Қабылданбады",noProposals:"Әзірге proposal жоқ.",
+feedbackTitle:"Feedback",reviewDirection:"Пікір бағыты",reviewTarget:"Кімге?",businessToStudent:"Бизнес → студент",studentToBusiness:"Студент → бизнес",workQuality:"Жұмыс сапасы",communication:"Коммуникация",deadlineKeeping:"Deadline сақтау",taskClarity:"Тапсырманың анықтығы",feedbackQuality:"Кері байланыс",overallRating:"Жалпы рейтинг",textReview:"Мәтіндік пікір",leaveReview:"Пікір қалдыру",noReviews:"Әзірге пікір жоқ.",
+contextNeed:"Контекст және қажеттілік",dataMaterials:"Деректер",expectedResult:"Күтілетін нәтиже",success:"Табыс критерийлері",limitations:"Шектеулер",businessLink:"Бизнеспен байланыс",context:"Контекст",need:"Қажеттілік",publish:"Каталогқа жариялау",
+saved:"Сақталды",published:"Каталогқа жарияланды",proposalSent:"Proposal жіберілді",reviewSaved:"Пікір сақталды",enterProblem:"Проблеманы енгізіңіз",taskCardCreated:"Task Card құрылды",cvSelected:"CV таңдалды",notification:"Жақын дедлайн",fullTask:"Толық тапсырма"
+},
+ru:{
+accessibility:"Доступность",fontUp:"Увеличить текст",fontDown:"Уменьшить текст",contrast:"Высокий контраст",simpleMode:"Простой интерфейс",readAloud:"Прочитать вслух",
+navHome:"Главная",navCreate:"Новая задача",navRating:"AI-рейтинг",navCatalog:"Каталог",navProfiles:"Профили",navDeadlines:"Дедлайны",navProposals:"Предложения",navDecision:"Решение",navFeedback:"Отзывы",
+tagline:"Платформа, соединяющая бизнес-идею со студенческим решением",what:"ЧТО?",whatText:"Превращает исходную бизнес-идею в конкретную Task Card с помощью AI.",why:"ЗАЧЕМ?",whyText:"Уточняет неполные и неясные бизнес-задачи.",who:"ДЛЯ КОГО?",whoText:"Для представителей бизнеса и студенческих команд.",
+openTasks:"Открытые задачи",students:"Студенты",proposals:"Предложения",activeProjects:"Активные проекты",nearDeadlines:"Ближайшие дедлайны",
+newTask:"Новая задача",newTaskHint:"Введите исходную бизнес-проблему. Demo AI структурирует только предоставленные вами данные.",problem:"Бизнес-проблема",problemPh:"Хотим упростить процесс подачи студентами заявок на практику.",clarifyBtn:"Уточнить с AI",clarifyingQuestions:"Уточняющие вопросы",
+taskTitle:"Название",titlePh:"Платформа заявок на практику",users:"Пользователи",data:"Данные",constraints:"Ограничения",expected:"Ожидаемый результат",successCriteria:"Критерии успеха",businessContact:"Связь с бизнесом",deadline:"Дедлайн",buildCard:"Создать Task Card",
+q1:"Какова основная проблема?",q2:"Кто будет пользоваться?",q3:"Какой результат ожидается?",q4:"Какие данные есть?",q5:"Какие есть ограничения?",q6:"Как будет оцениваться результат?",
+ratingTitle:"Полнота Task Card",missingInfo:"Недостающая информация",makeCardFirst:"Сначала создайте Task Card.",draft:"Черновик",working:"В работе",ready:"Готово",priority:"Приоритет",complete:"Информации достаточно. Task Card готова к публикации.",
+catalogTitle:"Каталог задач",catalogHint:"AI readiness score не ограничивает выбор студента.",company:"Компания",skills:"Необходимые навыки",readiness:"AI readiness score",proposalCount:"Количество proposal",viewFull:"Подробнее",chooseTask:"Выбрать",
+studentProfiles:"Профили студентов",businessProfiles:"Профили бизнеса",specialty:"Специальность",cv:"CV",uploadCV:"Загрузить CV",previousProjects:"Предыдущие проекты",portfolio:"Portfolio/GitHub",rating:"Рейтинг",reviews:"Отзывы",aiMatch:"AI Match",aiMatchHint:"AI Match — только рекомендация. Автоматического принятия нет.",industry:"Сфера",publishedTasks:"Опубликованные задачи",completedProjects:"Завершенные проекты",studentReviews:"Отзывы студентов",responseRate:"Response rate",
+deadlinesTitle:"Дедлайны",deadlineHint:"Ближайшие сроки отображаются в notification center.",daysLeft:"дн. осталось",today:"сегодня",overdue:"срок прошел",status:"Статус",open:"Открыто",soon:"Скоро",reminder:"Напомнить",
+proposalTitle:"Отправить proposal",selectedTask:"Выбранная задача",team:"Студент/команда",solutionIdea:"Идея решения",executionPlan:"План выполнения",technologies:"Технологии",prototype:"Prototype/GitHub link",members:"Участники команды",sendProposal:"Отправить proposal",
+businessDecision:"Решение бизнеса",decisionHint:"AI показывает только match. Финальное решение принимает представитель бизнеса.",plan:"План",accept:"Принять",reject:"Отклонить",waiting:"Ожидает",accepted:"Принято",rejected:"Отклонено",noProposals:"Proposal пока нет.",
+feedbackTitle:"Отзывы",reviewDirection:"Направление отзыва",reviewTarget:"Кому?",businessToStudent:"Бизнес → студент",studentToBusiness:"Студент → бизнес",workQuality:"Качество работы",communication:"Коммуникация",deadlineKeeping:"Соблюдение дедлайна",taskClarity:"Ясность задачи",feedbackQuality:"Обратная связь",overallRating:"Общий рейтинг",textReview:"Текстовый отзыв",leaveReview:"Оставить отзыв",noReviews:"Отзывов пока нет.",
+contextNeed:"Контекст и потребность",dataMaterials:"Данные",expectedResult:"Ожидаемый результат",success:"Критерии успеха",limitations:"Ограничения",businessLink:"Связь с бизнесом",context:"Контекст",need:"Потребность",publish:"Опубликовать в каталоге",
+saved:"Сохранено",published:"Опубликовано в каталоге",proposalSent:"Proposal отправлен",reviewSaved:"Отзыв сохранен",enterProblem:"Введите проблему",taskCardCreated:"Task Card создана",cvSelected:"CV выбран",notification:"Ближайший дедлайн",fullTask:"Полная задача"
+},
+en:{
+accessibility:"Accessibility",fontUp:"Increase text",fontDown:"Decrease text",contrast:"High contrast",simpleMode:"Simple interface",readAloud:"Read aloud",
+navHome:"Dashboard",navCreate:"New task",navRating:"AI rating",navCatalog:"Catalog",navProfiles:"Profiles",navDeadlines:"Deadlines",navProposals:"Proposals",navDecision:"Decision",navFeedback:"Feedback",
+tagline:"A platform connecting business ideas with student solutions",what:"WHAT?",whatText:"Turns an initial business idea into a clear Task Card with AI assistance.",why:"WHY?",whyText:"Clarifies incomplete and ambiguous business tasks.",who:"FOR WHOM?",whoText:"For business representatives and student teams.",
+openTasks:"Open tasks",students:"Students",proposals:"Proposals",activeProjects:"Active projects",nearDeadlines:"Upcoming deadlines",
+newTask:"New task",newTaskHint:"Enter the initial business problem. Demo AI only structures information you provide.",problem:"Business problem",problemPh:"We want to simplify the student internship application process.",clarifyBtn:"Clarify with AI",clarifyingQuestions:"Clarifying questions",
+taskTitle:"Title",titlePh:"Internship application platform",users:"Users",data:"Data",constraints:"Constraints",expected:"Expected result",successCriteria:"Success criteria",businessContact:"Business contact",deadline:"Deadline",buildCard:"Build Task Card",
+q1:"What is the main problem?",q2:"Who will use it?",q3:"What result is expected?",q4:"What data is available?",q5:"What constraints exist?",q6:"How will the result be evaluated?",
+ratingTitle:"Task Card completeness",missingInfo:"Missing information",makeCardFirst:"Create a Task Card first.",draft:"Draft",working:"Working",ready:"Ready",priority:"Priority",complete:"Information is sufficient. The Task Card is ready to publish.",
+catalogTitle:"Task catalog",catalogHint:"AI readiness score does not restrict student choice.",company:"Company",skills:"Required skills",readiness:"AI readiness score",proposalCount:"Proposal count",viewFull:"View full",chooseTask:"Choose",
+studentProfiles:"Student profiles",businessProfiles:"Business profiles",specialty:"Major",cv:"CV",uploadCV:"Upload CV",previousProjects:"Previous projects",portfolio:"Portfolio/GitHub",rating:"Rating",reviews:"Reviews",aiMatch:"AI Match",aiMatchHint:"AI Match is a recommendation only. It never auto-accepts.",industry:"Industry",publishedTasks:"Published tasks",completedProjects:"Completed projects",studentReviews:"Student reviews",responseRate:"Response rate",
+deadlinesTitle:"Deadlines",deadlineHint:"Upcoming deadlines appear in the notification center.",daysLeft:"days left",today:"today",overdue:"overdue",status:"Status",open:"Open",soon:"Soon",reminder:"Remind me",
+proposalTitle:"Send proposal",selectedTask:"Selected task",team:"Student/team",solutionIdea:"Solution idea",executionPlan:"Execution plan",technologies:"Technologies",prototype:"Prototype/GitHub link",members:"Team members",sendProposal:"Send proposal",
+businessDecision:"Business Decision",decisionHint:"AI only shows a match suggestion. The business representative makes the final decision.",plan:"Plan",accept:"Accept",reject:"Reject",waiting:"Waiting",accepted:"Accepted",rejected:"Rejected",noProposals:"No proposals yet.",
+feedbackTitle:"Feedback",reviewDirection:"Review direction",reviewTarget:"For whom?",businessToStudent:"Business → student",studentToBusiness:"Student → business",workQuality:"Work quality",communication:"Communication",deadlineKeeping:"Deadline adherence",taskClarity:"Task clarity",feedbackQuality:"Feedback quality",overallRating:"Overall rating",textReview:"Written review",leaveReview:"Leave review",noReviews:"No reviews yet.",
+contextNeed:"Context and need",dataMaterials:"Data",expectedResult:"Expected result",success:"Success criteria",limitations:"Constraints",businessLink:"Business contact",context:"Context",need:"Need",publish:"Publish to catalog",
+saved:"Saved",published:"Published to catalog",proposalSent:"Proposal sent",reviewSaved:"Review saved",enterProblem:"Enter a problem",taskCardCreated:"Task Card created",cvSelected:"CV selected",notification:"Upcoming deadline",fullTask:"Full task"
+}};
+let lang=localStorage.getItem("ideamatchLang")||"kk";
+let fontSize=Number(localStorage.getItem("ideamatchFont")||16);
+let currentTask=null;
+let proposals=JSON.parse(localStorage.getItem("ideamatchProposals")||"[]");
+let reviews=JSON.parse(localStorage.getItem("ideamatchReviews")||"[]");
+let tasks=[
+{id:"t1",title:"Campus Navigation Assistant",company:"TechNova",desc:"Campus navigation experience for students.",deadline:"2026-09-26",skills:["HTML","JavaScript","UX"],score:74,proposalCount:2},
+{id:"t2",title:"Internship Feedback Analyzer",company:"EduLab",desc:"Analyze internship feedback and show actionable insights.",deadline:"2026-09-30",skills:["JavaScript","Data","UI"],score:58,proposalCount:1},
+{id:"t3",title:"Library Queue Optimizer",company:"TechNova",desc:"Reduce waiting time with a simple queue management prototype.",deadline:"2026-09-25",skills:["Python","FastAPI","JS"],score:91,proposalCount:4},
+{id:"t4",title:"Student Event Finder",company:"EduLab",desc:"Help students discover relevant university events.",deadline:"2026-10-02",skills:["HTML","CSS","JavaScript"],score:43,proposalCount:0}
+];
+const students=[
+{name:"Alem Coders",major:"Computer Science",cv:"alem-coders-cv.pdf",skills:["HTML","CSS","JavaScript","Figma"],projects:["Campus AR Map","EduBot"],portfolio:"https://github.com/alem-coders",rating:4.8,reviews:12,match:91},
+{name:"Qadam AI",major:"Information Systems",cv:"qadam-ai-cv.pdf",skills:["Python","FastAPI","AI","Data"],projects:["Queue Vision","Smart Campus"],portfolio:"https://github.com/qadam-ai",rating:4.6,reviews:9,match:89},
+{name:"Nomad Dev",major:"Software Engineering",cv:"nomad-dev-cv.pdf",skills:["React","JavaScript","UX"],projects:["Event Finder","LMS Mobile"],portfolio:"https://github.com/nomad-dev",rating:4.9,reviews:14,match:87}
+];
+const businesses=[
+{name:"TechNova",industry:"Technology",published:7,completed:4,rating:4.8,reviews:18,response:95},
+{name:"EduLab",industry:"Education Technology",published:5,completed:3,rating:4.5,reviews:12,response:84}
+];
+const weights=[["contextNeed",20],["dataMaterials",20],["expectedResult",15],["success",15],["limitations",10],["users",10],["businessLink",10]];
+const $=id=>document.getElementById(id);
+const tr=k=>translations[lang][k]??k;
+function escapeHTML(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]))}
+function setLang(l){
+ lang=l;localStorage.setItem("ideamatchLang",l);document.documentElement.lang=l;
+ document.querySelectorAll("[data-i18n]").forEach(el=>{const k=el.dataset.i18n;if(translations[l][k])el.textContent=translations[l][k]});
+ document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{const k=el.dataset.i18nPlaceholder;if(translations[l][k])el.placeholder=translations[l][k]});
+ document.querySelectorAll("[data-lang]").forEach(b=>b.classList.toggle("active",b.dataset.lang===l));
+ renderAll();
+}
+function showTab(id){
+ document.querySelectorAll(".panel").forEach(p=>p.classList.toggle("active",p.id===id));
+ document.querySelectorAll(".sidebar button").forEach(b=>b.classList.toggle("active",b.dataset.tab===id));
+ if(id==="proposal")fillProposalForm(); if(id==="feedback")renderReviewFields();
+ window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".sidebar button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
+function toggleAccess(){$("accessMenu").classList.toggle("open")}
+function changeFont(delta){fontSize=Math.max(13,Math.min(22,fontSize+delta));document.documentElement.style.setProperty("--font",fontSize+"px");localStorage.setItem("ideamatchFont",fontSize)}
+function toggleContrast(){document.body.classList.toggle("high-contrast");localStorage.setItem("ideamatchContrast",document.body.classList.contains("high-contrast")?"1":"0")}
+function toggleSimple(){document.body.classList.toggle("simple");localStorage.setItem("ideamatchSimple",document.body.classList.contains("simple")?"1":"0")}
+function speakPage(){if(!("speechSynthesis" in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(document.querySelector(".panel.active").innerText);u.lang=lang==="kk"?"kk-KZ":lang==="ru"?"ru-RU":"en-US";speechSynthesis.speak(u)}
+function toast(text){const e=$("toast");e.textContent=text;e.style.display="block";clearTimeout(window.__toast);window.__toast=setTimeout(()=>e.style.display="none",2200)}
+function analyze(){
+ if(!$("raw").value.trim())return toast(tr("enterProblem"));
+ $("clarify").hidden=false;
+ $("questions").innerHTML=["q1","q2","q3","q4","q5","q6"].map((k,i)=>`<div class="question"><label for="answer${i}">${i+1}. ${tr(k)}</label><input id="answer${i}" aria-label="${escapeHTML(tr(k))}"></div>`).join("");
+}
+function buildCard(){
+ const a=i=>($("answer"+i)?.value||"").trim();
+ currentTask={
+ id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:"Your Business",
+ context:$("raw").value.trim(),need:a(0),users:$("usersInput").value.trim()||a(1),data:$("dataInput").value.trim()||a(3),
+ constraints:$("constraintsInput").value.trim()||a(4),result:$("resultInput").value.trim()||a(2),success:$("successInput").value.trim()||a(5),
+ contact:$("contactInput").value.trim(),deadline:$("deadlineInput").value,skills:["HTML","CSS","JavaScript"],proposalCount:0
+ };
+ calculateRating();renderTaskCard();$("taskCard").hidden=false;toast(tr("taskCardCreated"));
+}
+function calculateRating(){
+ if(!currentTask){$("score").textContent="0";$("scorebar").style.width="0%";$("level").textContent=tr("draft");return}
+ const vals=[currentTask.context+" "+currentTask.need,currentTask.data,currentTask.result,currentTask.success,currentTask.constraints,currentTask.users,currentTask.contact];
+ let total=0,parts=[],missing=[];
+ vals.forEach((v,i)=>{const ok=String(v||"").trim().length>=5;const pts=ok?weights[i][1]:0;total+=pts;parts.push(`<div class="progress-label"><span>${tr(weights[i][0])}</span><b>${pts}/${weights[i][1]}</b></div>`);if(!ok)missing.push(tr(weights[i][0]))});
+ currentTask.score=total;currentTask.levelKey=total<40?"draft":total<70?"working":total<90?"ready":"priority";
+ $("score").textContent=total;$("scorebar").style.width=total+"%";$("level").textContent=tr(currentTask.levelKey);$("breakdown").innerHTML=parts.join("");
+ $("missing").innerHTML=missing.length?`<ul>${missing.map(x=>`<li>${escapeHTML(x)}</li>`).join("")}</ul>`:`<p>${tr("complete")}</p>`;
+}
+function renderTaskCard(){
+ if(!currentTask)return;
+ $("taskCard").innerHTML=`<div class="row between"><div><span class="pill">${tr(currentTask.levelKey)} · ${currentTask.score}/100</span><h2>${escapeHTML(currentTask.title||tr("taskTitle"))}</h2></div></div>
+ <div class="grid">
+ <p><b>${tr("context")}:</b><br>${escapeHTML(currentTask.context)}</p><p><b>${tr("need")}:</b><br>${escapeHTML(currentTask.need)}</p>
+ <p><b>${tr("users")}:</b><br>${escapeHTML(currentTask.users)}</p><p><b>${tr("data")}:</b><br>${escapeHTML(currentTask.data)}</p>
+ <p><b>${tr("constraints")}:</b><br>${escapeHTML(currentTask.constraints)}</p><p><b>${tr("expected")}:</b><br>${escapeHTML(currentTask.result)}</p>
+ <p><b>${tr("successCriteria")}:</b><br>${escapeHTML(currentTask.success)}</p><p><b>${tr("businessContact")}:</b><br>${escapeHTML(currentTask.contact)}</p>
+ <p><b>${tr("deadline")}:</b><br>${escapeHTML(currentTask.deadline)}</p></div>
+ <button class="primary" onclick="publishTask()">${tr("publish")}</button>`;
+}
+function publishTask(){
+ if(!currentTask)return;
+ if(!tasks.some(t=>t.id===currentTask.id))tasks.push({...currentTask,desc:currentTask.need||currentTask.context});
+ renderAll();toast(tr("published"));showTab("catalog");
+}
+function levelFromScore(s){return s<40?"draft":s<70?"working":s<90?"ready":"priority"}
+function renderCatalog(){
+ $("catalogList").innerHTML=tasks.map(t=>`<article class="card task">
+ <div><div class="row"><span class="pill">${tr(levelFromScore(t.score||0))}</span><span class="tag">${escapeHTML(t.company)}</span></div>
+ <h3>${escapeHTML(t.title)}</h3><p>${escapeHTML(t.desc||t.need||"")}</p>
+ <p class="small"><b>${tr("deadline")}:</b> ${formatDate(t.deadline)} · <b>${tr("skills")}:</b> ${(t.skills||[]).map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p>
+ <p class="small"><b>${tr("proposalCount")}:</b> ${t.proposalCount||0}</p>
+ <div class="row"><button class="secondary" onclick="viewTask('${t.id}')">${tr("viewFull")}</button><button class="primary" onclick="selectTask('${t.id}')">${tr("chooseTask")}</button></div></div>
+ <div><div class="score" style="font-size:28px">${t.score||0}/100</div><div class="small muted">${tr("readiness")}</div></div></article>`).join("");
+}
+function viewTask(id){const t=tasks.find(x=>x.id===id);if(!t)return;alert(`${tr("fullTask")}\n\n${t.title}\n${t.company}\n${t.desc||t.need||""}\n${tr("deadline")}: ${formatDate(t.deadline)}\n${tr("readiness")}: ${t.score||0}/100`)}
+function selectTask(id){localStorage.setItem("ideamatchSelectedTask",id);showTab("proposal");fillProposalForm()}
+function renderProfiles(){
+ $("studentProfiles").innerHTML=students.map((s,i)=>`<div class="review"><div class="row between"><div><h3>${escapeHTML(s.name)}</h3><p class="muted">${tr("specialty")}: ${escapeHTML(s.major)}</p></div><span class="pill">${tr("aiMatch")}: ${s.match}%</span></div>
+ <p><b>${tr("skills")}:</b> ${s.skills.map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p>
+ <p><b>${tr("previousProjects")}:</b> ${escapeHTML(s.projects.join(", "))}</p><p><b>${tr("portfolio")}:</b> <a href="${s.portfolio}" target="_blank" rel="noopener">${escapeHTML(s.portfolio)}</a></p>
+ <p><b>${tr("rating")}:</b> ${s.rating}/5 · <b>${tr("reviews")}:</b> ${s.reviews}</p>
+ <label>${tr("cv")}: ${escapeHTML(s.cv)}</label><input type="file" accept=".pdf,.doc,.docx" onchange="cvPicked(this,${i})"><div id="cv${i}" class="file-note">${tr("aiMatchHint")}</div></div>`).join("");
+ $("businessProfiles").innerHTML=businesses.map(b=>`<div class="review"><h3>${escapeHTML(b.name)}</h3><p><b>${tr("industry")}:</b> ${escapeHTML(b.industry)}</p><p><b>${tr("publishedTasks")}:</b> ${b.published} · <b>${tr("completedProjects")}:</b> ${b.completed}</p><p><b>${tr("rating")}:</b> ${b.rating}/5 · <b>${tr("studentReviews")}:</b> ${b.reviews} · <b>${tr("responseRate")}:</b> ${b.response}%</p></div>`).join("");
+}
+function cvPicked(input,i){if(input.files[0]){$("cv"+i).textContent=`${tr("cvSelected")}: ${input.files[0].name}. ${tr("aiMatchHint")}`}}
+function dateDiff(d){const now=new Date();now.setHours(0,0,0,0);const target=new Date(d+"T00:00:00");return Math.ceil((target-now)/86400000)}
+function formatDate(d){if(!d)return "—";return new Intl.DateTimeFormat(lang==="kk"?"kk-KZ":lang==="ru"?"ru-RU":"en-US",{day:"numeric",month:"long",year:"numeric"}).format(new Date(d+"T00:00:00"))}
+function deadlineText(d){const n=dateDiff(d);return n<0?`${Math.abs(n)} ${tr("overdue")}`:n===0?tr("today"):`${n} ${tr("daysLeft")}`}
+function renderDeadlines(){
+ const sorted=[...tasks].sort((a,b)=>a.deadline.localeCompare(b.deadline));
+ const soon=sorted.filter(t=>dateDiff(t.deadline)>=0&&dateDiff(t.deadline)<=7);
+ $("deadlineNotice").innerHTML=soon.length?`<div class="notice"><b>${tr("notification")}:</b> ${soon.map(t=>`${escapeHTML(t.title)} — ${deadlineText(t.deadline)}`).join(" · ")}</div>`:"";
+ $("deadlineList").innerHTML=sorted.map(t=>`<div class="card task"><div><h3>${escapeHTML(t.title)}</h3><p>${tr("company")}: ${escapeHTML(t.company)}</p><p><b>${formatDate(t.deadline)}</b> · ${deadlineText(t.deadline)}</p><span class="pill">${dateDiff(t.deadline)<=3?tr("soon"):tr("open")}</span></div><button class="secondary" onclick="toast('${tr("saved")}')">${tr("reminder")}</button></div>`).join("");
+ $("homeDeadlines").innerHTML=sorted.slice(0,3).map(t=>`<div class="review"><b>${escapeHTML(t.title)}</b><span class="muted"> · ${formatDate(t.deadline)} · ${deadlineText(t.deadline)}</span></div>`).join("");
+}
+function fillProposalForm(){
+ $("proposalTask").innerHTML=tasks.map(t=>`<option value="${t.id}">${escapeHTML(t.title)} — ${escapeHTML(t.company)}</option>`).join("");
+ const selected=localStorage.getItem("ideamatchSelectedTask");if(selected&&tasks.some(t=>t.id===selected))$("proposalTask").value=selected;
+ $("teamName").innerHTML=students.map((s,i)=>`<option value="${i}">${escapeHTML(s.name)}</option>`).join("");
+}
+function submitProposal(){
+ const s=students[Number($("teamName").value)],t=tasks.find(x=>x.id===$("proposalTask").value);
+ if(!t||!$("idea").value.trim()||!$("plan").value.trim())return toast(tr("enterProblem"));
+ proposals.unshift({id:Date.now(),taskId:t.id,task:t.title,company:t.company,student:s.name,studentIndex:students.indexOf(s),idea:$("idea").value.trim(),plan:$("plan").value.trim(),tech:$("tech").value.trim(),link:$("link").value.trim(),members:$("members").value.trim(),status:"waiting"});
+ t.proposalCount=(t.proposalCount||0)+1;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr("proposalSent"));showTab("decision");
+}
+function renderProposals(){
+ $("proposalList").innerHTML=proposals.length?proposals.map((p,i)=>{const s=students[p.studentIndex]||students.find(x=>x.name===p.student);return `<article class="review"><div class="row between"><div><span class="pill">${tr(p.status)}</span><h3>${escapeHTML(p.student)} → ${escapeHTML(p.task)}</h3></div><span class="pill">${tr("aiMatch")}: ${s?.match||"—"}%</span></div>
+ <div class="grid"><p><b>${tr("solutionIdea")}:</b><br>${escapeHTML(p.idea)}</p><p><b>${tr("plan")}:</b><br>${escapeHTML(p.plan)}</p><p><b>${tr("cv")}:</b><br>${escapeHTML(s?.cv||"—")}</p><p><b>${tr("skills")}:</b><br>${(s?.skills||[]).map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p><p><b>${tr("previousProjects")}:</b><br>${escapeHTML((s?.projects||[]).join(", "))}</p><p><b>${tr("rating")} / ${tr("reviews")}:</b><br>${s?.rating||"—"}/5 · ${s?.reviews||0}</p><p><b>${tr("prototype")}:</b><br>${p.link?`<a href="${escapeHTML(p.link)}" target="_blank" rel="noopener">${escapeHTML(p.link)}</a>`:"—"}</p><p><b>${tr("technologies")}:</b><br>${escapeHTML(p.tech||"—")}</p></div>
+ ${p.status==="waiting"?`<div class="row"><button class="success" onclick="makeDecision(${i},'accepted')">${tr("accept")}</button><button class="danger" onclick="makeDecision(${i},'rejected')">${tr("reject")}</button></div>`:""}</article>`}).join(""):`<div class="empty">${tr("noProposals")}</div>`;
+}
+function makeDecision(i,status){proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
+function renderReviewFields(){
+ $("reviewDirection").innerHTML=`<option value="b2s">${tr("businessToStudent")}</option><option value="s2b">${tr("studentToBusiness")}</option>`;
+ const direction=$("reviewDirection").value||"b2s";
+ $("reviewTarget").innerHTML=(direction==="b2s"?students:businesses).map(x=>`<option>${escapeHTML(x.name)}</option>`).join("");
+ const criteria=direction==="b2s"?["workQuality","communication","deadlineKeeping"]:["taskClarity","communication","feedbackQuality"];
+ $("reviewCriteria").innerHTML=criteria.map(k=>`<div><label>${tr(k)}</label><select data-review-criterion="${k}"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>`).join("");
+ $("reviewDirection").onchange=()=>{const d=$("reviewDirection").value;$("reviewTarget").innerHTML=(d==="b2s"?students:businesses).map(x=>`<option>${escapeHTML(x.name)}</option>`).join("");const c=d==="b2s"?["workQuality","communication","deadlineKeeping"]:["taskClarity","communication","feedbackQuality"];$("reviewCriteria").innerHTML=c.map(k=>`<div><label>${tr(k)}</label><select data-review-criterion="${k}"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></div>`).join("")};
+}
+function addReview(){
+ const criteria={};document.querySelectorAll("[data-review-criterion]").forEach(x=>criteria[x.dataset.reviewCriterion]=Number(x.value));
+ reviews.unshift({target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
+ localStorage.setItem("ideamatchReviews",JSON.stringify(reviews));renderReviews();toast(tr("reviewSaved"));
+}
+function renderReviews(){$("reviews").innerHTML=reviews.length?reviews.map(r=>`<div class="review"><b>${escapeHTML(r.target)}</b> <span class="stars">${"★".repeat(r.score)}</span><p>${escapeHTML(r.text||"")}</p></div>`).join(""):`<p class="muted">${tr("noReviews")}</p>`}
+function updateStats(){$("statOpen").textContent=tasks.length;$("statStudents").textContent=students.length;$("statProposals").textContent=proposals.length;$("statActive").textContent=proposals.filter(p=>p.status==="accepted").length}
+function renderAll(){calculateRating();renderTaskCard();renderCatalog();renderProfiles();renderDeadlines();fillProposalForm();renderProposals();renderReviews();updateStats()}
+document.documentElement.style.setProperty("--font",fontSize+"px");
+if(localStorage.getItem("ideamatchContrast")==="1")document.body.classList.add("high-contrast");
+if(localStorage.getItem("ideamatchSimple")==="1")document.body.classList.add("simple");
+setLang(lang);
+</script>
+</body>
+</html>
