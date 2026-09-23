@@ -68,29 +68,22 @@ a{color:var(--accent)}
  header{position:static}.shell{display:block}.sidebar{position:static;height:auto;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:9px}.sidebar button{min-width:max-content;width:auto}
  main{padding:18px}.grid,.grid3,.stats,.task{grid-template-columns:1fr}.header-actions{width:100%}.access-menu{top:120px}.page-head{display:block}
 }
-
-.ai-fab{position:fixed;right:22px;bottom:22px;z-index:60;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;font-size:22px;box-shadow:0 12px 30px #0003}
-.ai-assistant{position:fixed;right:22px;bottom:90px;z-index:59;width:min(380px,calc(100vw - 28px));height:520px;max-height:70vh;background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 18px 50px #0003;display:none;overflow:hidden}
-.ai-assistant.open{display:flex;flex-direction:column}.ai-head{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}.ai-head button{background:transparent;color:var(--ink);padding:5px 8px}
-.ai-messages{flex:1;overflow:auto;padding:14px}.ai-msg{max-width:88%;padding:10px 12px;border-radius:13px;margin:7px 0;white-space:pre-wrap}.ai-msg.bot{background:var(--accent2);color:var(--ink)}.ai-msg.user{background:var(--accent);color:#fff;margin-left:auto}
-.ai-input{padding:12px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:8px}.ai-input input{min-width:0}.ai-input button{background:var(--accent);color:#fff}
-.ai-quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px}.ai-quick button{font-size:.78em;background:var(--accent2);color:var(--accent);padding:7px 9px}
-@media(max-width:600px){.ai-assistant{right:14px;bottom:82px;height:62vh}.ai-fab{right:14px;bottom:14px}}
-
-
-.account-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.account-chip{padding:7px 10px;border-radius:999px;background:#1e293b;color:#fff;font-size:.84em}
-.login-overlay{position:fixed;inset:0;z-index:100;background:rgba(15,23,42,.58);display:none;align-items:center;justify-content:center;padding:18px}.login-overlay.open{display:flex}
-.login-card{width:min(520px,100%);background:var(--card);color:var(--ink);border-radius:20px;padding:24px;box-shadow:0 24px 70px #0005}
-.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.role-btn{padding:16px;border:1px solid var(--line);background:var(--card);color:var(--ink);text-align:left}.role-btn.selected{border-color:var(--accent);background:var(--accent2);color:var(--accent)}
-.readonly-note{padding:10px 12px;border-radius:10px;background:#f8fafc;border:1px solid var(--line);color:var(--muted);margin:10px 0}.rating-box{padding:12px;border:1px solid var(--line);border-radius:12px;margin-top:10px}
-
 </style>
 </head>
 <body>
+<div id="loginOverlay" class="login-overlay">
+ <div class="login-box">
+  <h2>IdeaMatch</h2>
+  <p class="muted" id="loginHint">Профильге кіріңіз</p>
+  <label id="nameLabel">Атыңыз</label><input id="loginName" placeholder="Аты-жөніңіз">
+  <label id="companyLabel">Компания / мамандық</label><input id="loginMeta" placeholder="Компания немесе мамандық">
+  <div class="role-grid"><button class="role-btn active" id="roleBusiness" onclick="chooseRole('business')">Бизнес</button><button class="role-btn" id="roleStudent" onclick="chooseRole('student')">Студент</button></div>
+  <button class="primary" style="width:100%" onclick="loginUser()" id="loginBtn">Кіру</button>
+ </div>
+</div>
 <header>
   <div class="brand">IdeaMatch</div>
-  <div class="header-actions">
-    <div class="account-bar"><span id="accountChip" class="account-chip">Guest</span><button type="button" onclick="openLogin()" id="accountBtn">Кіру</button></div>
+  <div class="header-actions"><div id="currentUserChip" class="user-chip"></div>
     <div class="langs" aria-label="Language">
       <button type="button" data-lang="kk" onclick="setLang('kk')">KZ</button>
       <button type="button" data-lang="ru" onclick="setLang('ru')">RU</button>
@@ -106,21 +99,6 @@ a{color:var(--accent)}
   <button onclick="toggleContrast()" data-i18n="contrast">Жоғары контраст</button>
   <button onclick="toggleSimple()" data-i18n="simpleMode">Қарапайым интерфейс</button>
   <button onclick="speakPage()" data-i18n="readAloud">Мәтінді дауыстап оқу</button>
-</div>
-
-
-<div id="loginOverlay" class="login-overlay" role="dialog" aria-modal="true">
-  <div class="login-card">
-    <div class="row between"><h2 id="loginTitle">IdeaMatch профилі</h2><button type="button" class="secondary" onclick="closeLogin()">×</button></div>
-    <p class="muted" id="loginHint">Рөліңізді таңдап, атыңызды енгізіңіз.</p>
-    <div class="role-grid">
-      <button type="button" class="role-btn" data-role-choice="student" onclick="chooseRole('student')"><b>Студент</b><br><span class="small muted">Тапсырма көру, proposal, бағалау</span></button>
-      <button type="button" class="role-btn" data-role-choice="business" onclick="chooseRole('business')"><b>Бизнес өкілі</b><br><span class="small muted">Тапсырма құру, proposal шешімі</span></button>
-    </div>
-    <label>Аты-жөні</label><input id="loginName" placeholder="Асылай Құралбай">
-    <label id="orgLabel">Команда / мамандық</label><input id="loginOrg" placeholder="Физика-Информатика">
-    <button type="button" class="primary" style="margin-top:14px;width:100%" onclick="saveAccount()">Профильге кіру</button>
-  </div>
 </div>
 
 <div class="shell">
@@ -247,28 +225,34 @@ a{color:var(--accent)}
 </section>
 </main>
 </div>
-
-<button id="aiFab" class="ai-fab" type="button" onclick="toggleAI()" aria-label="AI assistant">AI</button>
-<aside id="aiAssistant" class="ai-assistant" role="dialog" aria-label="AI assistant">
-  <div class="ai-head"><div><b data-ai-i18n="title">AI көмекші</b><div class="small muted" data-ai-i18n="subtitle">IdeaMatch бойынша көмек</div></div><button type="button" onclick="toggleAI()" aria-label="Close">×</button></div>
-  <div id="aiMessages" class="ai-messages" aria-live="polite"></div>
-  <div class="ai-quick">
-    <button type="button" onclick="aiQuick('task')" data-ai-i18n="qTask">Task Card көмегі</button>
-    <button type="button" onclick="aiQuick('rating')" data-ai-i18n="qRating">Рейтингті түсіндір</button>
-    <button type="button" onclick="aiQuick('proposal')" data-ai-i18n="qProposal">Proposal көмегі</button>
-  </div>
-  <div class="ai-input"><input id="aiInput" data-ai-placeholder="placeholder" placeholder="Сұрағыңызды жазыңыз..." onkeydown="if(event.key==='Enter')sendAI()"><button type="button" onclick="sendAI()" data-ai-i18n="send">Жіберу</button></div>
-</aside>
-
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
 
+let selectedRole="business";
+let currentUser=JSON.parse(localStorage.getItem("ideamatchCurrentUser")||"null");
 let taskRatings=JSON.parse(localStorage.getItem("ideamatchTaskRatings")||"{}");
+function chooseRole(role){selectedRole=role;$("roleBusiness")?.classList.toggle("active",role==="business");$("roleStudent")?.classList.toggle("active",role==="student")}
+function loginUser(){
+ const name=$("loginName").value.trim(),meta=$("loginMeta").value.trim();
+ if(!name)return alert("Атыңызды енгізіңіз");
+ currentUser={id:(selectedRole+"-"+name.toLowerCase().replace(/\s+/g,"-")),name,meta,role:selectedRole};
+ localStorage.setItem("ideamatchCurrentUser",JSON.stringify(currentUser));$("loginOverlay").style.display="none";applyRole();renderAll();
+}
+function logoutUser(){localStorage.removeItem("ideamatchCurrentUser");location.reload()}
+function applyRole(){
+ if(!currentUser)return;
+ $("currentUserChip").innerHTML=`${escapeHTML(currentUser.name)} · ${currentUser.role==="business"?"Business":"Student"} <button style="padding:3px 6px;margin-left:5px" onclick="logoutUser()">×</button>`;
+ if($("reviewerIdentity"))$("reviewerIdentity").textContent=`Пікір авторы: ${currentUser.name}`;
+ document.querySelector('[data-tab="create"]').style.display=currentUser.role==="business"?"flex":"none";
+ document.querySelector('[data-tab="rating"]').style.display=currentUser.role==="business"?"flex":"none";
+ document.querySelector('[data-tab="decision"]').style.display=currentUser.role==="business"?"flex":"none";
+ document.querySelector('[data-tab="proposal"]').style.display=currentUser.role==="student"?"flex":"none";
+}
 function rateTask(id,value){
- if(!activeAccount||!value)return;
+ if(!currentUser||!value)return;
  taskRatings[id]=taskRatings[id]||{};
- taskRatings[id][activeAccount.id]=Number(value);
+ taskRatings[id][currentUser.id]=Number(value);
  localStorage.setItem("ideamatchTaskRatings",JSON.stringify(taskRatings));
  renderCatalog();toast("Баға сақталды");
 }
@@ -370,130 +354,7 @@ function showTab(id){
 }
 document.querySelectorAll(".sidebar button").forEach(b=>b.addEventListener("click",()=>showTab(b.dataset.tab)));
 function toggleAccess(){$("accessMenu").classList.toggle("open")}
-function changeFont(delta){fontSize=Math.max(13,Math.min(22,fontSize+delta));
-const aiTranslations={
-kk:{title:"AI көмекші",subtitle:"IdeaMatch бойынша көмек",placeholder:"Сұрағыңызды жазыңыз...",send:"Жіберу",qTask:"Task Card көмегі",qRating:"Рейтингті түсіндір",qProposal:"Proposal көмегі",
-welcome:"Сәлем! Мен IdeaMatch AI көмекшісімін. Task Card толтыруға, AI рейтингті түсіндіруге және proposal дайындауға көмектесемін. Demo режимінде мен сайттағы ақпаратқа сүйенемін.",
-task:"Task Card үшін проблеманы нақты жазыңыз, кейін пайдаланушылар, деректер, шектеулер, күтілетін нәтиже, табыс критерийлері, бизнеспен байланыс және дедлайнды толтырыңыз. Мен фактілерді өзім ойдан қоспаймын.",
-rating:"AI рейтинг Task Card толықтығын 100 баллмен бағалайды: контекст пен қажеттілік 20, деректер 20, күтілетін нәтиже 15, табыс критерийлері 15, шектеулер 10, пайдаланушылар 10, бизнеспен байланыс 10.",
-proposal:"Жақсы proposal ішінде шешім идеясы, орындау жоспары, технологиялар, Prototype/GitHub сілтемесі және команда мүшелері болуы керек. Соңғы қабылдау немесе қабылдамау шешімін бизнес өзі жасайды.",
-deadline:"Дедлайндар бөлімінде тапсырма мерзімі мен қалған күн көрсетіледі. Жақын дедлайндар Dashboard-та да шығады.",
-profile:"Профильді бағалағанда CV-мен бірге skills, алдыңғы жобалар, proposal, рейтинг және пікірлер қаралады. AI Match тек ұсыныс.",
-fallback:"Бұл demo AI көмекші IdeaMatch функциялары бойынша жауап береді. Task Card, рейтинг, каталог, профиль, дедлайн, proposal, шешім немесе feedback туралы сұрай аласыз."},
-ru:{title:"AI-помощник",subtitle:"Помощь по IdeaMatch",placeholder:"Напишите вопрос...",send:"Отправить",qTask:"Помощь с Task Card",qRating:"Объяснить рейтинг",qProposal:"Помощь с proposal",
-welcome:"Здравствуйте! Я AI-помощник IdeaMatch. Помогу заполнить Task Card, объяснить AI-рейтинг и подготовить proposal. В demo-режиме я опираюсь на информацию сайта.",
-task:"Для Task Card четко опишите проблему, затем заполните пользователей, данные, ограничения, ожидаемый результат, критерии успеха, связь с бизнесом и дедлайн. Я не добавляю факты от себя.",
-rating:"AI-рейтинг оценивает полноту Task Card из 100: контекст и потребность 20, данные 20, ожидаемый результат 15, критерии успеха 15, ограничения 10, пользователи 10, связь с бизнесом 10.",
-proposal:"Хороший proposal включает идею решения, план выполнения, технологии, ссылку Prototype/GitHub и участников команды. Финальное решение о принятии принимает бизнес.",
-deadline:"В разделе дедлайнов показаны срок задачи и оставшиеся дни. Ближайшие дедлайны также отображаются на Dashboard.",
-profile:"При оценке профиля учитываются не только CV, но и skills, предыдущие проекты, proposal, рейтинг и отзывы. AI Match — только рекомендация.",
-fallback:"Этот demo AI-помощник отвечает по функциям IdeaMatch. Спросите о Task Card, рейтинге, каталоге, профиле, дедлайне, proposal, решении или feedback."},
-en:{title:"AI assistant",subtitle:"IdeaMatch help",placeholder:"Type your question...",send:"Send",qTask:"Task Card help",qRating:"Explain rating",qProposal:"Proposal help",
-welcome:"Hi! I am the IdeaMatch AI assistant. I can help with Task Cards, explain the AI rating, and prepare proposals. In demo mode I use information available in the site.",
-task:"For a Task Card, clearly describe the problem, then provide users, data, constraints, expected result, success criteria, business contact, and deadline. I do not invent facts.",
-rating:"The AI rating scores Task Card completeness out of 100: context and need 20, data 20, expected result 15, success criteria 15, constraints 10, users 10, and business contact 10.",
-proposal:"A strong proposal includes the solution idea, execution plan, technologies, Prototype/GitHub link, and team members. The business makes the final accept or reject decision.",
-deadline:"The Deadlines page shows each task deadline and days remaining. Upcoming deadlines also appear on the Dashboard.",
-profile:"Profile evaluation considers CV together with skills, previous projects, proposal, rating, and reviews. AI Match is only a recommendation.",
-fallback:"This demo AI assistant answers questions about IdeaMatch features. Ask about Task Cards, rating, catalog, profiles, deadlines, proposals, decisions, or feedback."}
-};
-function aiT(k){return (aiTranslations[lang]||aiTranslations.kk)[k]||k}
-function updateAIText(){
- document.querySelectorAll("[data-ai-i18n]").forEach(e=>e.textContent=aiT(e.dataset.aiI18n));
- document.querySelectorAll("[data-ai-placeholder]").forEach(e=>e.placeholder=aiT(e.dataset.aiPlaceholder));
- if(!$("aiMessages").children.length)addAIMessage(aiT("welcome"),"bot");
-}
-function toggleAI(){$("aiAssistant").classList.toggle("open");if($("aiAssistant").classList.contains("open")){$("aiInput").focus();updateAIText()}}
-function addAIMessage(text,type){const d=document.createElement("div");d.className="ai-msg "+type;d.textContent=text;$("aiMessages").appendChild(d);$("aiMessages").scrollTop=$("aiMessages").scrollHeight}
-function aiAnswer(q){
- const x=q.toLowerCase();
- if(/task|тапсыр|карточ|задач/.test(x))return aiT("task");
- if(/рейтинг|rating|score|балл/.test(x))return aiT("rating");
- if(/proposal|ұсыныс|предлож/.test(x))return aiT("proposal");
- if(/deadline|дедлайн|мерзім|срок/.test(x))return aiT("deadline");
- if(/profile|профил|cv|skills|студент/.test(x))return aiT("profile");
- return aiT("fallback");
-}
-function sendAI(){const inp=$("aiInput"),q=inp.value.trim();if(!q)return;addAIMessage(q,"user");inp.value="";setTimeout(()=>addAIMessage(aiAnswer(q),"bot"),180)}
-function aiQuick(type){addAIMessage(aiT(type),"bot")}
-const originalSetLang=setLang;
-setLang=function(l){originalSetLang(l);updateAIText()}
-
-
-let activeAccount=JSON.parse(localStorage.getItem("ideamatchAccount")||"null");
-let chosenRole=activeAccount?.role||"student";
-let peerReviews=JSON.parse(localStorage.getItem("ideamatchPeerReviews")||"[]");
-
-function openLogin(){
- $("loginOverlay").classList.add("open");
- if(activeAccount){$("loginName").value=activeAccount.name||"";$("loginOrg").value=activeAccount.org||"";chosenRole=activeAccount.role||"student"}
- chooseRole(chosenRole);
-}
-function closeLogin(){$("loginOverlay").classList.remove("open")}
-function chooseRole(role){
- chosenRole=role;
- document.querySelectorAll("[data-role-choice]").forEach(b=>b.classList.toggle("selected",b.dataset.roleChoice===role));
- $("orgLabel").textContent=role==="business"?"Компания":"Команда / мамандық";
-}
-function saveAccount(){
- const name=$("loginName").value.trim(),org=$("loginOrg").value.trim();
- if(!name)return toast(lang==="ru"?"Введите имя":lang==="en"?"Enter your name":"Атыңызды енгізіңіз");
- activeAccount={id:(activeAccount?.id||"u-"+Date.now()),name,org,role:chosenRole};
- localStorage.setItem("ideamatchAccount",JSON.stringify(activeAccount));closeLogin();applyRole();renderProfiles();renderReviews();
-}
-function logout(){activeAccount=null;localStorage.removeItem("ideamatchAccount");applyRole();renderProfiles();renderReviews();openLogin()}
-function applyRole(){
- const chip=$("accountChip"),btn=$("accountBtn");
- if(!activeAccount){chip.textContent="Guest";btn.textContent=lang==="ru"?"Войти":lang==="en"?"Sign in":"Кіру";btn.onclick=openLogin;return}
- chip.textContent=`${activeAccount.name} · ${activeAccount.role==="business"?(lang==="ru"?"Бизнес":lang==="en"?"Business":"Бизнес"):(lang==="ru"?"Студент":lang==="en"?"Student":"Студент")}`;
- btn.textContent=lang==="ru"?"Выйти":lang==="en"?"Sign out":"Шығу";btn.onclick=logout;
-}
-function requireRole(role){
- if(!activeAccount){openLogin();return false}
- if(activeAccount.role!==role){toast(role==="business"?(lang==="ru"?"Только бизнес может изменять эту задачу":lang==="en"?"Only the business owner can modify this task":"Бұл әрекетті тек бизнес өкілі жасай алады"):(lang==="ru"?"Доступно студенту":lang==="en"?"Available to students":"Студентке арналған әрекет"));return false}
- return true;
-}
-function peerAverage(studentName){
- const arr=peerReviews.filter(r=>r.target===studentName);if(!arr.length)return null;
- return (arr.reduce((a,b)=>a+Number(b.score),0)/arr.length).toFixed(1);
-}
-function rateStudent(studentName){
- if(!activeAccount){openLogin();return}
- if(activeAccount.role!=="student"){toast(lang==="ru"?"Оценивать студентов друг друга могут студенты":lang==="en"?"Peer rating is available to students":"Студенттерді өзара бағалау студенттерге арналған");return}
- if(activeAccount.name===studentName){toast(lang==="ru"?"Нельзя оценивать себя":lang==="en"?"You cannot rate yourself":"Өзіңізге баға қоя алмайсыз");return}
- const raw=prompt(lang==="ru"?`Оценка для ${studentName} (1–5):`:lang==="en"?`Rating for ${studentName} (1–5):`:`${studentName} үшін баға (1–5):`,"5");
- const score=Number(raw);if(!Number.isFinite(score)||score<1||score>5)return;
- const text=prompt(lang==="ru"?"Комментарий:":lang==="en"?"Comment:":"Пікір:","")||"";
- peerReviews.unshift({from:activeAccount.name,target:studentName,score,text,date:new Date().toISOString()});
- localStorage.setItem("ideamatchPeerReviews",JSON.stringify(peerReviews));renderProfiles();toast(lang==="ru"?"Оценка сохранена":lang==="en"?"Rating saved":"Баға сақталды");
-}
-const baseRenderProfiles=renderProfiles;
-renderProfiles=function(){
- baseRenderProfiles();
- const root=$("studentProfiles"); if(!root)return;
- const blocks=[...root.querySelectorAll(".review")];
- blocks.forEach((block,i)=>{
-   const s=students[i],avg=peerAverage(s.name),list=peerReviews.filter(r=>r.target===s.name).slice(0,4);
-   const box=document.createElement("div");box.className="rating-box";
-   box.innerHTML=`<div class="row between"><div><b>${lang==="ru"?"Оценки студентов":lang==="en"?"Student peer rating":"Студенттердің бағасы"}</b><div class="small muted">${avg?avg+"/5":"—"} · ${list.length} ${lang==="ru"?"отзыв":lang==="en"?"reviews":"пікір"}</div></div>${activeAccount?.role==="student"&&activeAccount.name!==s.name?`<button class="secondary" type="button">${lang==="ru"?"Оценить":lang==="en"?"Rate":"Бағалау"}</button>`:""}</div>
-   ${list.map(r=>`<div class="review small"><b>${escapeHTML(r.from)} → ${escapeHTML(r.target)}</b> · ${r.score}/5<p>${escapeHTML(r.text)}</p></div>`).join("")}`;
-   const b=box.querySelector("button");if(b)b.onclick=()=>rateStudent(s.name);block.appendChild(box);
- });
-}
-const baseBuildCard=buildCard;
-buildCard=function(){if(!requireRole("business"))return;baseBuildCard();if(currentTask){currentTask.ownerId=activeAccount.id;currentTask.ownerName=activeAccount.name;currentTask.company=activeAccount.org||activeAccount.name}}
-const basePublishTask=publishTask;
-publishTask=function(){if(!requireRole("business"))return;if(currentTask&&currentTask.ownerId&&currentTask.ownerId!==activeAccount.id){toast(lang==="ru"?"Нельзя изменять чужую задачу":lang==="en"?"You cannot modify another user's task":"Басқа адамның тапсырмасын өзгерте алмайсыз");return}basePublishTask()}
-const baseSubmitProposal=submitProposal;
-submitProposal=function(){if(!requireRole("student"))return;baseSubmitProposal();if(proposals[0]){proposals[0].submittedBy=activeAccount.name;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals))}}
-const baseDecision=makeDecision;
-makeDecision=function(i,status){if(!requireRole("business"))return;const p=proposals[i],t=tasks.find(x=>x.id===p?.taskId);if(t?.ownerId&&t.ownerId!==activeAccount.id){toast(lang==="ru"?"Решение принимает владелец задачи":lang==="en"?"Only the task owner can make this decision":"Шешімді тапсырма иесі ғана қабылдайды");return}baseDecision(i,status)}
-const baseViewTask=viewTask;
-viewTask=function(id){baseViewTask(id)}
-const baseSelectTask=selectTask;
-selectTask=function(id){if(!requireRole("student"))return;baseSelectTask(id)}
-
-document.documentElement.style.setProperty("--font",fontSize+"px");localStorage.setItem("ideamatchFont",fontSize)}
+function changeFont(delta){fontSize=Math.max(13,Math.min(22,fontSize+delta));document.documentElement.style.setProperty("--font",fontSize+"px");localStorage.setItem("ideamatchFont",fontSize)}
 function toggleContrast(){document.body.classList.toggle("high-contrast");localStorage.setItem("ideamatchContrast",document.body.classList.contains("high-contrast")?"1":"0")}
 function toggleSimple(){document.body.classList.toggle("simple");localStorage.setItem("ideamatchSimple",document.body.classList.contains("simple")?"1":"0")}
 function speakPage(){if(!("speechSynthesis" in window))return; speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(document.querySelector(".panel.active").innerText);u.lang=lang==="kk"?"kk-KZ":lang==="ru"?"ru-RU":"en-US";speechSynthesis.speak(u)}
@@ -506,7 +367,7 @@ function analyze(){
 function buildCard(){
  const a=i=>($("answer"+i)?.value||"").trim();
  currentTask={
- id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:activeAccount?.org||activeAccount?.name||"Business",ownerId:activeAccount?.id||"",
+ id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:currentUser?.meta||currentUser?.name||"Business",ownerId:currentUser?.id||"",
  context:$("raw").value.trim(),need:a(0),users:$("usersInput").value.trim()||a(1),data:$("dataInput").value.trim()||a(3),
  constraints:$("constraintsInput").value.trim()||a(4),result:$("resultInput").value.trim()||a(2),success:$("successInput").value.trim()||a(5),
  contact:$("contactInput").value.trim(),deadline:$("deadlineInput").value,skills:["HTML","CSS","JavaScript"],proposalCount:0
@@ -547,7 +408,7 @@ function renderCatalog(){
  <p class="small"><b>${tr("proposalCount")}:</b> ${t.proposalCount||0}</p>
   <div class="row"><span class="small"><b>${tr("rating")}:</b> <span id="taskRate-${t.id}">${taskAverage(t.id)}</span>/5</span>
   <select style="width:auto" aria-label="Task rating" onchange="rateTask('${t.id}',this.value)"><option value="">★</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
-  <div class="readonly-note">${activeAccount?.role==="business" && t.ownerId===activeAccount.id ? "" : "Тапсырманы тек авторы өзгерте алады"}</div>
+  <div class="readonly-note">${currentUser?.role==="business" && t.ownerId===currentUser.id ? "" : "Тапсырманы тек авторы өзгерте алады"}</div>
  <div class="row"><button class="secondary" onclick="viewTask('${t.id}')">${tr("viewFull")}</button><button class="primary" onclick="selectTask('${t.id}')">${tr("chooseTask")}</button></div></div>
  <div><div class="score" style="font-size:28px">${t.score||0}/100</div><div class="small muted">${tr("readiness")}</div></div></article>`).join("");
 }
@@ -578,7 +439,7 @@ function fillProposalForm(){
  $("teamName").innerHTML=students.map((s,i)=>`<option value="${i}">${escapeHTML(s.name)}</option>`).join("");
 }
 function submitProposal(){
- if(!activeAccount||activeAccount.role!=="student")return toast("Proposal тек студент атынан жіберіледі");
+ if(!currentUser||currentUser.role!=="student")return toast("Proposal тек студент атынан жіберіледі");
  const s=students[Number($("teamName").value)],t=tasks.find(x=>x.id===$("proposalTask").value);
  if(!t||!$("idea").value.trim()||!$("plan").value.trim())return toast(tr("enterProblem"));
  proposals.unshift({id:Date.now(),taskId:t.id,task:t.title,company:t.company,student:s.name,studentIndex:students.indexOf(s),idea:$("idea").value.trim(),plan:$("plan").value.trim(),tech:$("tech").value.trim(),link:$("link").value.trim(),members:$("members").value.trim(),status:"waiting"});
@@ -589,7 +450,7 @@ function renderProposals(){
  <div class="grid"><p><b>${tr("solutionIdea")}:</b><br>${escapeHTML(p.idea)}</p><p><b>${tr("plan")}:</b><br>${escapeHTML(p.plan)}</p><p><b>${tr("cv")}:</b><br>${escapeHTML(s?.cv||"—")}</p><p><b>${tr("skills")}:</b><br>${(s?.skills||[]).map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p><p><b>${tr("previousProjects")}:</b><br>${escapeHTML((s?.projects||[]).join(", "))}</p><p><b>${tr("rating")} / ${tr("reviews")}:</b><br>${s?.rating||"—"}/5 · ${s?.reviews||0}</p><p><b>${tr("prototype")}:</b><br>${p.link?`<a href="${escapeHTML(p.link)}" target="_blank" rel="noopener">${escapeHTML(p.link)}</a>`:"—"}</p><p><b>${tr("technologies")}:</b><br>${escapeHTML(p.tech||"—")}</p></div>
  ${p.status==="waiting"?`<div class="row"><button class="success" onclick="makeDecision(${i},'accepted')">${tr("accept")}</button><button class="danger" onclick="makeDecision(${i},'rejected')">${tr("reject")}</button></div>`:""}</article>`}).join(""):`<div class="empty">${tr("noProposals")}</div>`;
 }
-function makeDecision(i,status){if(!activeAccount||activeAccount.role!=="business")return toast("Шешімді тек бизнес қабылдайды");proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
+function makeDecision(i,status){if(!currentUser||currentUser.role!=="business")return toast("Шешімді тек бизнес қабылдайды");proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
 function renderReviewFields(){
  $("reviewDirection").innerHTML=`<option value="b2s">${tr("businessToStudent")}</option><option value="s2b">${tr("studentToBusiness")}</option>`;
  const direction=$("reviewDirection").value||"b2s";
@@ -600,7 +461,7 @@ function renderReviewFields(){
 }
 function addReview(){
  const criteria={};document.querySelectorAll("[data-review-criterion]").forEach(x=>criteria[x.dataset.reviewCriterion]=Number(x.value));
- reviews.unshift({author:activeAccount?.name||"Anonymous",authorRole:activeAccount?.role||"",target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
+ reviews.unshift({author:currentUser?.name||"Anonymous",authorRole:currentUser?.role||"",target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
  localStorage.setItem("ideamatchReviews",JSON.stringify(reviews));renderReviews();toast(tr("reviewSaved"));
 }
 function renderReviews(){$("reviews").innerHTML=reviews.length?reviews.map(r=>`<div class="review"><b>${escapeHTML(r.author||"Anonymous")} → ${escapeHTML(r.target)}</b> <span class="stars">${"★".repeat(r.score)}</span><p>${escapeHTML(r.text||"")}</p></div>`).join(""):`<p class="muted">${tr("noReviews")}</p>`}
@@ -609,11 +470,8 @@ function renderAll(){calculateRating();renderTaskCard();renderCatalog();renderPr
 document.documentElement.style.setProperty("--font",fontSize+"px");
 if(localStorage.getItem("ideamatchContrast")==="1")document.body.classList.add("high-contrast");
 if(localStorage.getItem("ideamatchSimple")==="1")document.body.classList.add("simple");
-if(activeAccount){$("loginOverlay").classList.remove("open");applyRole()}else{$("loginOverlay").classList.add("open")}
+if(currentUser){$("loginOverlay").style.display="none";applyRole()}else{$("loginOverlay").style.display="grid"}
 setLang(lang);
-updateAIText();
-applyRole();
-if(!activeAccount)setTimeout(openLogin,250);
 </script>
 </body>
 </html>
