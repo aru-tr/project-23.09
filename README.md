@@ -200,3 +200,9 @@ Business Problem
 
 ```bash
 pip install fastapi uvicorn
+
+## 12. Deployed version
+
+Рабочая версия IdeaMatch опубликована через GitHub Pages:
+
+https://aru-tr.github.io/project-23.09/
