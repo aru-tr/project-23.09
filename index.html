@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="kk">
 <head>
@@ -60,6 +61,8 @@ p{margin:7px 0 12px}
 .access-menu{position:fixed;right:18px;top:76px;z-index:45;width:270px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;box-shadow:0 15px 40px #0002;display:none}
 .access-menu.open{display:block}.access-menu button{width:100%;margin:4px 0;text-align:left;background:var(--accent2);color:var(--accent)}
 .file-note{padding:9px 11px;background:var(--accent2);border-radius:9px;margin-top:7px}
+.userbar{display:flex;align-items:center;gap:8px}.user-chip{background:#1e293b;color:#fff;padding:7px 10px;border-radius:10px;font-size:.85em}
+.login-overlay{position:fixed;inset:0;background:#0f172acc;z-index:100;display:grid;place-items:center;padding:18px}.login-box{width:min(520px,100%);background:var(--card);color:var(--ink);padding:24px;border-radius:18px}.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}.role-btn{background:var(--accent2);color:var(--accent);border:1px solid var(--line)}.role-btn.active{background:var(--accent);color:#fff}.readonly-note{font-size:.82em;color:var(--muted);margin-top:8px}
 a{color:var(--accent)}
 @media(max-width:820px){
  header{position:static}.shell{display:block}.sidebar{position:static;height:auto;display:flex;overflow:auto;border-right:0;border-bottom:1px solid var(--line);padding:9px}.sidebar button{min-width:max-content;width:auto}
@@ -68,9 +71,19 @@ a{color:var(--accent)}
 </style>
 </head>
 <body>
+<div id="loginOverlay" class="login-overlay">
+ <div class="login-box">
+  <h2>IdeaMatch</h2>
+  <p class="muted" id="loginHint">Профильге кіріңіз</p>
+  <label id="nameLabel">Атыңыз</label><input id="loginName" placeholder="Аты-жөніңіз">
+  <label id="companyLabel">Компания / мамандық</label><input id="loginMeta" placeholder="Компания немесе мамандық">
+  <div class="role-grid"><button class="role-btn active" id="roleBusiness" onclick="chooseRole('business')">Бизнес</button><button class="role-btn" id="roleStudent" onclick="chooseRole('student')">Студент</button></div>
+  <button class="primary" style="width:100%" onclick="loginUser()" id="loginBtn">Кіру</button>
+ </div>
+</div>
 <header>
   <div class="brand">IdeaMatch</div>
-  <div class="header-actions">
+  <div class="header-actions"><div id="currentUserChip" class="user-chip"></div>
     <div class="langs" aria-label="Language">
       <button type="button" data-lang="kk" onclick="setLang('kk')">KZ</button>
       <button type="button" data-lang="ru" onclick="setLang('ru')">RU</button>
@@ -198,7 +211,7 @@ a{color:var(--accent)}
 
 <section id="feedback" class="panel">
   <div class="card">
-    <h2 data-i18n="feedbackTitle">Feedback</h2>
+    <h2 data-i18n="feedbackTitle">Feedback</h2><p class="muted"><span id="reviewerIdentity"></span></p>
     <div class="grid">
       <div><label data-i18n="reviewDirection">Пікір бағыты</label><select id="reviewDirection" onchange="renderReviewFields()"></select></div>
       <div><label data-i18n="reviewTarget">Кімге?</label><select id="reviewTarget"></select></div>
@@ -215,6 +228,38 @@ a{color:var(--accent)}
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 
 <script>
+
+let selectedRole="business";
+let currentUser=JSON.parse(localStorage.getItem("ideamatchCurrentUser")||"null");
+let taskRatings=JSON.parse(localStorage.getItem("ideamatchTaskRatings")||"{}");
+function chooseRole(role){selectedRole=role;$("roleBusiness")?.classList.toggle("active",role==="business");$("roleStudent")?.classList.toggle("active",role==="student")}
+function loginUser(){
+ const name=$("loginName").value.trim(),meta=$("loginMeta").value.trim();
+ if(!name)return alert("Атыңызды енгізіңіз");
+ currentUser={id:(selectedRole+"-"+name.toLowerCase().replace(/\s+/g,"-")),name,meta,role:selectedRole};
+ localStorage.setItem("ideamatchCurrentUser",JSON.stringify(currentUser));$("loginOverlay").style.display="none";applyRole();renderAll();
+}
+function logoutUser(){localStorage.removeItem("ideamatchCurrentUser");location.reload()}
+function applyRole(){
+ if(!currentUser)return;
+ $("currentUserChip").innerHTML=`${escapeHTML(currentUser.name)} · ${currentUser.role==="business"?"Business":"Student"} <button style="padding:3px 6px;margin-left:5px" onclick="logoutUser()">×</button>`;
+ if($("reviewerIdentity"))$("reviewerIdentity").textContent=`Пікір авторы: ${currentUser.name}`;
+ document.querySelector('[data-tab="create"]').style.display=currentUser.role==="business"?"flex":"none";
+ document.querySelector('[data-tab="rating"]').style.display=currentUser.role==="business"?"flex":"none";
+ document.querySelector('[data-tab="decision"]').style.display=currentUser.role==="business"?"flex":"none";
+ document.querySelector('[data-tab="proposal"]').style.display=currentUser.role==="student"?"flex":"none";
+}
+function rateTask(id,value){
+ if(!currentUser||!value)return;
+ taskRatings[id]=taskRatings[id]||{};
+ taskRatings[id][currentUser.id]=Number(value);
+ localStorage.setItem("ideamatchTaskRatings",JSON.stringify(taskRatings));
+ renderCatalog();toast("Баға сақталды");
+}
+function taskAverage(id){
+ const vals=Object.values(taskRatings[id]||{});
+ return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):"—";
+}
 const translations={
 kk:{
 accessibility:"Қолжетімділік",fontUp:"Мәтінді үлкейту",fontDown:"Мәтінді кішірейту",contrast:"Жоғары контраст",simpleMode:"Қарапайым интерфейс",readAloud:"Мәтінді дауыстап оқу",
@@ -322,7 +367,7 @@ function analyze(){
 function buildCard(){
  const a=i=>($("answer"+i)?.value||"").trim();
  currentTask={
- id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:"Your Business",
+ id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:currentUser?.meta||currentUser?.name||"Business",ownerId:currentUser?.id||"",
  context:$("raw").value.trim(),need:a(0),users:$("usersInput").value.trim()||a(1),data:$("dataInput").value.trim()||a(3),
  constraints:$("constraintsInput").value.trim()||a(4),result:$("resultInput").value.trim()||a(2),success:$("successInput").value.trim()||a(5),
  contact:$("contactInput").value.trim(),deadline:$("deadlineInput").value,skills:["HTML","CSS","JavaScript"],proposalCount:0
@@ -361,6 +406,9 @@ function renderCatalog(){
  <h3>${escapeHTML(t.title)}</h3><p>${escapeHTML(t.desc||t.need||"")}</p>
  <p class="small"><b>${tr("deadline")}:</b> ${formatDate(t.deadline)} · <b>${tr("skills")}:</b> ${(t.skills||[]).map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p>
  <p class="small"><b>${tr("proposalCount")}:</b> ${t.proposalCount||0}</p>
+  <div class="row"><span class="small"><b>${tr("rating")}:</b> <span id="taskRate-${t.id}">${taskAverage(t.id)}</span>/5</span>
+  <select style="width:auto" aria-label="Task rating" onchange="rateTask('${t.id}',this.value)"><option value="">★</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
+  <div class="readonly-note">${currentUser?.role==="business" && t.ownerId===currentUser.id ? "" : "Тапсырманы тек авторы өзгерте алады"}</div>
  <div class="row"><button class="secondary" onclick="viewTask('${t.id}')">${tr("viewFull")}</button><button class="primary" onclick="selectTask('${t.id}')">${tr("chooseTask")}</button></div></div>
  <div><div class="score" style="font-size:28px">${t.score||0}/100</div><div class="small muted">${tr("readiness")}</div></div></article>`).join("");
 }
@@ -391,6 +439,7 @@ function fillProposalForm(){
  $("teamName").innerHTML=students.map((s,i)=>`<option value="${i}">${escapeHTML(s.name)}</option>`).join("");
 }
 function submitProposal(){
+ if(!currentUser||currentUser.role!=="student")return toast("Proposal тек студент атынан жіберіледі");
  const s=students[Number($("teamName").value)],t=tasks.find(x=>x.id===$("proposalTask").value);
  if(!t||!$("idea").value.trim()||!$("plan").value.trim())return toast(tr("enterProblem"));
  proposals.unshift({id:Date.now(),taskId:t.id,task:t.title,company:t.company,student:s.name,studentIndex:students.indexOf(s),idea:$("idea").value.trim(),plan:$("plan").value.trim(),tech:$("tech").value.trim(),link:$("link").value.trim(),members:$("members").value.trim(),status:"waiting"});
@@ -401,7 +450,7 @@ function renderProposals(){
  <div class="grid"><p><b>${tr("solutionIdea")}:</b><br>${escapeHTML(p.idea)}</p><p><b>${tr("plan")}:</b><br>${escapeHTML(p.plan)}</p><p><b>${tr("cv")}:</b><br>${escapeHTML(s?.cv||"—")}</p><p><b>${tr("skills")}:</b><br>${(s?.skills||[]).map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p><p><b>${tr("previousProjects")}:</b><br>${escapeHTML((s?.projects||[]).join(", "))}</p><p><b>${tr("rating")} / ${tr("reviews")}:</b><br>${s?.rating||"—"}/5 · ${s?.reviews||0}</p><p><b>${tr("prototype")}:</b><br>${p.link?`<a href="${escapeHTML(p.link)}" target="_blank" rel="noopener">${escapeHTML(p.link)}</a>`:"—"}</p><p><b>${tr("technologies")}:</b><br>${escapeHTML(p.tech||"—")}</p></div>
  ${p.status==="waiting"?`<div class="row"><button class="success" onclick="makeDecision(${i},'accepted')">${tr("accept")}</button><button class="danger" onclick="makeDecision(${i},'rejected')">${tr("reject")}</button></div>`:""}</article>`}).join(""):`<div class="empty">${tr("noProposals")}</div>`;
 }
-function makeDecision(i,status){proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
+function makeDecision(i,status){if(!currentUser||currentUser.role!=="business")return toast("Шешімді тек бизнес қабылдайды");proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
 function renderReviewFields(){
  $("reviewDirection").innerHTML=`<option value="b2s">${tr("businessToStudent")}</option><option value="s2b">${tr("studentToBusiness")}</option>`;
  const direction=$("reviewDirection").value||"b2s";
@@ -412,15 +461,16 @@ function renderReviewFields(){
 }
 function addReview(){
  const criteria={};document.querySelectorAll("[data-review-criterion]").forEach(x=>criteria[x.dataset.reviewCriterion]=Number(x.value));
- reviews.unshift({target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
+ reviews.unshift({author:currentUser?.name||"Anonymous",authorRole:currentUser?.role||"",target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
  localStorage.setItem("ideamatchReviews",JSON.stringify(reviews));renderReviews();toast(tr("reviewSaved"));
 }
-function renderReviews(){$("reviews").innerHTML=reviews.length?reviews.map(r=>`<div class="review"><b>${escapeHTML(r.target)}</b> <span class="stars">${"★".repeat(r.score)}</span><p>${escapeHTML(r.text||"")}</p></div>`).join(""):`<p class="muted">${tr("noReviews")}</p>`}
+function renderReviews(){$("reviews").innerHTML=reviews.length?reviews.map(r=>`<div class="review"><b>${escapeHTML(r.author||"Anonymous")} → ${escapeHTML(r.target)}</b> <span class="stars">${"★".repeat(r.score)}</span><p>${escapeHTML(r.text||"")}</p></div>`).join(""):`<p class="muted">${tr("noReviews")}</p>`}
 function updateStats(){$("statOpen").textContent=tasks.length;$("statStudents").textContent=students.length;$("statProposals").textContent=proposals.length;$("statActive").textContent=proposals.filter(p=>p.status==="accepted").length}
 function renderAll(){calculateRating();renderTaskCard();renderCatalog();renderProfiles();renderDeadlines();fillProposalForm();renderProposals();renderReviews();updateStats()}
 document.documentElement.style.setProperty("--font",fontSize+"px");
 if(localStorage.getItem("ideamatchContrast")==="1")document.body.classList.add("high-contrast");
 if(localStorage.getItem("ideamatchSimple")==="1")document.body.classList.add("simple");
+if(currentUser){$("loginOverlay").style.display="none";applyRole()}else{$("loginOverlay").style.display="grid"}
 setLang(lang);
 </script>
 </body>
