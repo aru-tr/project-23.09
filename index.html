@@ -1,8 +1,5 @@
 
-<<<<<<< HEAD
 <!DOCTYPE html>
-=======
->>>>>>> 95619f2ca56d1d312447a8b92a4f6d90795eaffa
 <html lang="kk">
 <head>
 <meta charset="UTF-8">
@@ -90,24 +87,10 @@ a{color:var(--accent)}
 </style>
 </head>
 <body>
-<div id="loginOverlay" class="login-overlay">
- <div class="login-box">
-  <h2>IdeaMatch</h2>
-  <p class="muted" id="loginHint">Профильге кіріңіз</p>
-  <label id="nameLabel">Атыңыз</label><input id="loginName" placeholder="Аты-жөніңіз">
-  <label id="companyLabel">Компания / мамандық</label><input id="loginMeta" placeholder="Компания немесе мамандық">
-  <div class="role-grid"><button class="role-btn active" id="roleBusiness" onclick="chooseRole('business')">Бизнес</button><button class="role-btn" id="roleStudent" onclick="chooseRole('student')">Студент</button></div>
-  <button class="primary" style="width:100%" onclick="loginUser()" id="loginBtn">Кіру</button>
- </div>
-</div>
 <header>
   <div class="brand">IdeaMatch</div>
-<<<<<<< HEAD
-  <div class="header-actions"><div id="currentUserChip" class="user-chip"></div>
-=======
   <div class="header-actions">
     <div class="account-bar"><span id="accountChip" class="account-chip">Guest</span><button type="button" onclick="openLogin()" id="accountBtn">Кіру</button></div>
->>>>>>> 95619f2ca56d1d312447a8b92a4f6d90795eaffa
     <div class="langs" aria-label="Language">
       <button type="button" data-lang="kk" onclick="setLang('kk')">KZ</button>
       <button type="button" data-lang="ru" onclick="setLang('ru')">RU</button>
@@ -281,30 +264,11 @@ a{color:var(--accent)}
 
 <script>
 
-let selectedRole="business";
-let currentUser=JSON.parse(localStorage.getItem("ideamatchCurrentUser")||"null");
 let taskRatings=JSON.parse(localStorage.getItem("ideamatchTaskRatings")||"{}");
-function chooseRole(role){selectedRole=role;$("roleBusiness")?.classList.toggle("active",role==="business");$("roleStudent")?.classList.toggle("active",role==="student")}
-function loginUser(){
- const name=$("loginName").value.trim(),meta=$("loginMeta").value.trim();
- if(!name)return alert("Атыңызды енгізіңіз");
- currentUser={id:(selectedRole+"-"+name.toLowerCase().replace(/\s+/g,"-")),name,meta,role:selectedRole};
- localStorage.setItem("ideamatchCurrentUser",JSON.stringify(currentUser));$("loginOverlay").style.display="none";applyRole();renderAll();
-}
-function logoutUser(){localStorage.removeItem("ideamatchCurrentUser");location.reload()}
-function applyRole(){
- if(!currentUser)return;
- $("currentUserChip").innerHTML=`${escapeHTML(currentUser.name)} · ${currentUser.role==="business"?"Business":"Student"} <button style="padding:3px 6px;margin-left:5px" onclick="logoutUser()">×</button>`;
- if($("reviewerIdentity"))$("reviewerIdentity").textContent=`Пікір авторы: ${currentUser.name}`;
- document.querySelector('[data-tab="create"]').style.display=currentUser.role==="business"?"flex":"none";
- document.querySelector('[data-tab="rating"]').style.display=currentUser.role==="business"?"flex":"none";
- document.querySelector('[data-tab="decision"]').style.display=currentUser.role==="business"?"flex":"none";
- document.querySelector('[data-tab="proposal"]').style.display=currentUser.role==="student"?"flex":"none";
-}
 function rateTask(id,value){
- if(!currentUser||!value)return;
+ if(!activeAccount||!value)return;
  taskRatings[id]=taskRatings[id]||{};
- taskRatings[id][currentUser.id]=Number(value);
+ taskRatings[id][activeAccount.id]=Number(value);
  localStorage.setItem("ideamatchTaskRatings",JSON.stringify(taskRatings));
  renderCatalog();toast("Баға сақталды");
 }
@@ -542,7 +506,7 @@ function analyze(){
 function buildCard(){
  const a=i=>($("answer"+i)?.value||"").trim();
  currentTask={
- id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:currentUser?.meta||currentUser?.name||"Business",ownerId:currentUser?.id||"",
+ id:"custom-"+Date.now(),title:$("titleInput").value.trim(),company:activeAccount?.org||activeAccount?.name||"Business",ownerId:activeAccount?.id||"",
  context:$("raw").value.trim(),need:a(0),users:$("usersInput").value.trim()||a(1),data:$("dataInput").value.trim()||a(3),
  constraints:$("constraintsInput").value.trim()||a(4),result:$("resultInput").value.trim()||a(2),success:$("successInput").value.trim()||a(5),
  contact:$("contactInput").value.trim(),deadline:$("deadlineInput").value,skills:["HTML","CSS","JavaScript"],proposalCount:0
@@ -583,7 +547,7 @@ function renderCatalog(){
  <p class="small"><b>${tr("proposalCount")}:</b> ${t.proposalCount||0}</p>
   <div class="row"><span class="small"><b>${tr("rating")}:</b> <span id="taskRate-${t.id}">${taskAverage(t.id)}</span>/5</span>
   <select style="width:auto" aria-label="Task rating" onchange="rateTask('${t.id}',this.value)"><option value="">★</option><option value="5">5</option><option value="4">4</option><option value="3">3</option><option value="2">2</option><option value="1">1</option></select></div>
-  <div class="readonly-note">${currentUser?.role==="business" && t.ownerId===currentUser.id ? "" : "Тапсырманы тек авторы өзгерте алады"}</div>
+  <div class="readonly-note">${activeAccount?.role==="business" && t.ownerId===activeAccount.id ? "" : "Тапсырманы тек авторы өзгерте алады"}</div>
  <div class="row"><button class="secondary" onclick="viewTask('${t.id}')">${tr("viewFull")}</button><button class="primary" onclick="selectTask('${t.id}')">${tr("chooseTask")}</button></div></div>
  <div><div class="score" style="font-size:28px">${t.score||0}/100</div><div class="small muted">${tr("readiness")}</div></div></article>`).join("");
 }
@@ -614,7 +578,7 @@ function fillProposalForm(){
  $("teamName").innerHTML=students.map((s,i)=>`<option value="${i}">${escapeHTML(s.name)}</option>`).join("");
 }
 function submitProposal(){
- if(!currentUser||currentUser.role!=="student")return toast("Proposal тек студент атынан жіберіледі");
+ if(!activeAccount||activeAccount.role!=="student")return toast("Proposal тек студент атынан жіберіледі");
  const s=students[Number($("teamName").value)],t=tasks.find(x=>x.id===$("proposalTask").value);
  if(!t||!$("idea").value.trim()||!$("plan").value.trim())return toast(tr("enterProblem"));
  proposals.unshift({id:Date.now(),taskId:t.id,task:t.title,company:t.company,student:s.name,studentIndex:students.indexOf(s),idea:$("idea").value.trim(),plan:$("plan").value.trim(),tech:$("tech").value.trim(),link:$("link").value.trim(),members:$("members").value.trim(),status:"waiting"});
@@ -625,7 +589,7 @@ function renderProposals(){
  <div class="grid"><p><b>${tr("solutionIdea")}:</b><br>${escapeHTML(p.idea)}</p><p><b>${tr("plan")}:</b><br>${escapeHTML(p.plan)}</p><p><b>${tr("cv")}:</b><br>${escapeHTML(s?.cv||"—")}</p><p><b>${tr("skills")}:</b><br>${(s?.skills||[]).map(x=>`<span class="tag">${escapeHTML(x)}</span>`).join("")}</p><p><b>${tr("previousProjects")}:</b><br>${escapeHTML((s?.projects||[]).join(", "))}</p><p><b>${tr("rating")} / ${tr("reviews")}:</b><br>${s?.rating||"—"}/5 · ${s?.reviews||0}</p><p><b>${tr("prototype")}:</b><br>${p.link?`<a href="${escapeHTML(p.link)}" target="_blank" rel="noopener">${escapeHTML(p.link)}</a>`:"—"}</p><p><b>${tr("technologies")}:</b><br>${escapeHTML(p.tech||"—")}</p></div>
  ${p.status==="waiting"?`<div class="row"><button class="success" onclick="makeDecision(${i},'accepted')">${tr("accept")}</button><button class="danger" onclick="makeDecision(${i},'rejected')">${tr("reject")}</button></div>`:""}</article>`}).join(""):`<div class="empty">${tr("noProposals")}</div>`;
 }
-function makeDecision(i,status){if(!currentUser||currentUser.role!=="business")return toast("Шешімді тек бизнес қабылдайды");proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
+function makeDecision(i,status){if(!activeAccount||activeAccount.role!=="business")return toast("Шешімді тек бизнес қабылдайды");proposals[i].status=status;localStorage.setItem("ideamatchProposals",JSON.stringify(proposals));renderAll();toast(tr(status))}
 function renderReviewFields(){
  $("reviewDirection").innerHTML=`<option value="b2s">${tr("businessToStudent")}</option><option value="s2b">${tr("studentToBusiness")}</option>`;
  const direction=$("reviewDirection").value||"b2s";
@@ -636,7 +600,7 @@ function renderReviewFields(){
 }
 function addReview(){
  const criteria={};document.querySelectorAll("[data-review-criterion]").forEach(x=>criteria[x.dataset.reviewCriterion]=Number(x.value));
- reviews.unshift({author:currentUser?.name||"Anonymous",authorRole:currentUser?.role||"",target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
+ reviews.unshift({author:activeAccount?.name||"Anonymous",authorRole:activeAccount?.role||"",target:$("reviewTarget").value,direction:$("reviewDirection").value,score:Number($("reviewScore").value),text:$("reviewText").value.trim(),criteria});
  localStorage.setItem("ideamatchReviews",JSON.stringify(reviews));renderReviews();toast(tr("reviewSaved"));
 }
 function renderReviews(){$("reviews").innerHTML=reviews.length?reviews.map(r=>`<div class="review"><b>${escapeHTML(r.author||"Anonymous")} → ${escapeHTML(r.target)}</b> <span class="stars">${"★".repeat(r.score)}</span><p>${escapeHTML(r.text||"")}</p></div>`).join(""):`<p class="muted">${tr("noReviews")}</p>`}
@@ -645,7 +609,7 @@ function renderAll(){calculateRating();renderTaskCard();renderCatalog();renderPr
 document.documentElement.style.setProperty("--font",fontSize+"px");
 if(localStorage.getItem("ideamatchContrast")==="1")document.body.classList.add("high-contrast");
 if(localStorage.getItem("ideamatchSimple")==="1")document.body.classList.add("simple");
-if(currentUser){$("loginOverlay").style.display="none";applyRole()}else{$("loginOverlay").style.display="grid"}
+if(activeAccount){$("loginOverlay").classList.remove("open");applyRole()}else{$("loginOverlay").classList.add("open")}
 setLang(lang);
 updateAIText();
 applyRole();
