@@ -31,6 +31,15 @@ body.contrast{--bg:#000;--card:#000;--ink:#fff;--muted:#ddd;--line:#fff;--blue:#
 .rank-badge{display:inline-block;padding:5px 9px;border-radius:999px;background:var(--blue2);color:#1749a8;font-size:12px;font-weight:700}
 @media(max-width:700px){.edit-grid{grid-template-columns:1fr}.case-tools select,.case-tools input{width:100%}}
 
+
+body.contrast .top,body.contrast .access-panel,body.contrast .notify,body.contrast .ai,
+body.contrast input,body.contrast textarea,body.contrast select,body.contrast .secondary,
+body.contrast .card,body.contrast .question{background:#000!important;color:#fff!important;border-color:#fff!important}
+body.contrast #topName,body.contrast #topOrg,body.contrast #pageTitle,body.contrast #roleText{color:#fff!important}
+body.contrast #langSelect{background:#000!important;color:#fff!important;border:2px solid #fff!important}
+body.contrast #langSelect option{background:#000!important;color:#fff!important}
+body.contrast .avatar{background:#fff!important;color:#000!important}
+body.contrast .primary{background:#ff0!important;color:#000!important}
 </style>
 </head>
 <body>
@@ -329,10 +338,68 @@ function toggleAccess(){$("accessPanel").classList.toggle("open")}
 let fontScale=Number(localStorage.getItem("im_font")||100);
 function changeFont(n){fontScale=Math.max(80,Math.min(130,fontScale+n*10));document.documentElement.style.fontSize=fontScale+"%";localStorage.setItem("im_font",fontScale)}
 function readPage(){if(!("speechSynthesis" in window))return alert("Бұл браузер мәтінді оқуды қолдамайды.");speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(document.querySelector(".page.active")?.innerText||"");u.lang="kk-KZ";speechSynthesis.speak(u)}
-function setLanguage(l){localStorage.setItem("im_lang",l);$("langSelect").value=l; /* негізгі контент KZ demo, тіл таңдауы сақталады */ }
+function setLanguage(l){localStorage.setItem("im_lang",l);if($("langSelect"))$("langSelect").value=l;renderAll();setTimeout(()=>applyUILanguage(l),0)}
+
+const IM_I18N={
+ru:{
+"Басты бет":"Главная","Жаңа тапсырма":"Новая задача","AI рейтинг":"AI-рейтинг","Каталог":"Каталог","Профильдер":"Профили","Студенттер":"Студенты","Дедлайндар":"Дедлайны","Ұсыныстар":"Предложения","Менің ұсыныстарым":"Мои предложения","Пікірлер":"Отзывы","Менің профилім":"Мой профиль",
+"Профильге кіру":"Войти в профиль","Студент":"Студент","Бизнес өкілі":"Представитель бизнеса","Аты-жөні":"Имя и фамилия","Мамандық / команда":"Специальность / команда","Компания атауы":"Название компании","Бизнес саласы":"Сфера бизнеса","Кіру":"Войти","Шығу":"Выйти",
+"Қолжетімділік":"Доступность","Жоғары контраст":"Высокий контраст","Қарапайым режим":"Простой режим","Мәтінді оқу":"Прочитать текст","Хабарламалар":"Уведомления",
+"Менің тапсырмаларым":"Мои задачи","Ашық тапсырмалар":"Открытые задачи","Келген ұсыныстар":"Полученные предложения","Бизнес аналитикасы":"Бизнес-аналитика","Бизнес flow":"Сценарий бизнеса","Студент flow":"Сценарий студента",
+"Жаңа бизнес тапсырмасы":"Новая бизнес-задача","Бастапқы бизнес мәселесі":"Исходная бизнес-проблема","AI нақтылау сұрақтары":"Уточняющие вопросы AI","Task Card атауы":"Название Task Card","Пайдаланушылар":"Пользователи","Деректер":"Данные","Шектеулер":"Ограничения","Күтілетін нәтиже":"Ожидаемый результат","Табыс критерийлері":"Критерии успеха","Бизнес контакті":"Контакт бизнеса","Дедлайн":"Дедлайн","Қажетті skills":"Необходимые навыки","Task Card жариялау":"Опубликовать Task Card",
+"Тапсырмалар каталогы":"Каталог задач","Барлық салалар":"Все сферы","Барлық деңгей":"Все уровни","Рейтинг бойынша":"По рейтингу","Дедлайн бойынша":"По дедлайну","Шешім ұсыну":"Предложить решение","Task Card өзгерту":"Изменить Task Card","Task Card редакциялау":"Редактирование Task Card","Атауы":"Название","Контекст / қажеттілік":"Контекст / потребность","Өзгерісті растау және жариялау":"Подтвердить и опубликовать","Live AI рейтинг":"Текущий AI-рейтинг",
+"Шешім идеясы":"Идея решения","Орындау жоспары":"План выполнения","Технологиялар":"Технологии","Орындау мерзімі":"Срок выполнения","Proposal жіберу":"Отправить proposal","Студент ұсыныстары":"Предложения студентов","Студент профилі":"Профиль студента","Бағалау / пікір жазу":"Оценить / написать отзыв",
+"Өзім туралы":"О себе","Қала":"Город","Алдыңғы жобалар":"Предыдущие проекты","Тәжірибе / жетістіктер":"Опыт / достижения","Профильді сақтау":"Сохранить профиль","Компания туралы":"О компании","Компания сайты":"Сайт компании","Орналасуы":"Местоположение","Компания профилін сақтау":"Сохранить профиль компании","AI көмекші":"AI-помощник","IdeaMatch бойынша көмек":"Помощь по IdeaMatch","Жіберу":"Отправить",
+"Жоба":"Черновик","Жұмыс":"В работе","Дайын":"Готово","Басым":"Приоритет","Ашық":"Открыто","Қаралуда":"На рассмотрении","Қабылданды":"Принято","Қабылданбады":"Отклонено"
+},
+en:{
+"Басты бет":"Dashboard","Жаңа тапсырма":"New task","AI рейтинг":"AI rating","Каталог":"Catalog","Профильдер":"Profiles","Студенттер":"Students","Дедлайндар":"Deadlines","Ұсыныстар":"Proposals","Менің ұсыныстарым":"My proposals","Пікірлер":"Reviews","Менің профилім":"My profile",
+"Профильге кіру":"Sign in","Студент":"Student","Бизнес өкілі":"Business representative","Аты-жөні":"Full name","Мамандық / команда":"Major / team","Компания атауы":"Company name","Бизнес саласы":"Business industry","Кіру":"Sign in","Шығу":"Sign out",
+"Қолжетімділік":"Accessibility","Жоғары контраст":"High contrast","Қарапайым режим":"Simple mode","Мәтінді оқу":"Read aloud","Хабарламалар":"Notifications",
+"Менің тапсырмаларым":"My tasks","Ашық тапсырмалар":"Open tasks","Келген ұсыныстар":"Received proposals","Бизнес аналитикасы":"Business analytics","Бизнес flow":"Business flow","Студент flow":"Student flow",
+"Жаңа бизнес тапсырмасы":"New business task","Бастапқы бизнес мәселесі":"Initial business problem","AI нақтылау сұрақтары":"AI clarifying questions","Task Card атауы":"Task Card title","Пайдаланушылар":"Users","Деректер":"Data","Шектеулер":"Constraints","Күтілетін нәтиже":"Expected result","Табыс критерийлері":"Success criteria","Бизнес контакті":"Business contact","Дедлайн":"Deadline","Қажетті skills":"Required skills","Task Card жариялау":"Publish Task Card",
+"Тапсырмалар каталогы":"Task catalog","Барлық салалар":"All industries","Барлық деңгей":"All levels","Рейтинг бойынша":"By rating","Дедлайн бойынша":"By deadline","Шешім ұсыну":"Propose solution","Task Card өзгерту":"Edit Task Card","Task Card редакциялау":"Edit Task Card","Атауы":"Title","Контекст / қажеттілік":"Context / need","Өзгерісті растау және жариялау":"Confirm and publish","Live AI рейтинг":"Live AI rating",
+"Шешім идеясы":"Solution idea","Орындау жоспары":"Execution plan","Технологиялар":"Technologies","Орындау мерзімі":"Delivery deadline","Proposal жіберу":"Send proposal","Студент ұсыныстары":"Student proposals","Студент профилі":"Student profile","Бағалау / пікір жазу":"Rate / write review",
+"Өзім туралы":"About me","Қала":"City","Алдыңғы жобалар":"Previous projects","Тәжірибе / жетістіктер":"Experience / achievements","Профильді сақтау":"Save profile","Компания туралы":"About company","Компания сайты":"Company website","Орналасуы":"Location","Компания профилін сақтау":"Save company profile","AI көмекші":"AI assistant","IdeaMatch бойынша көмек":"IdeaMatch help","Жіберу":"Send",
+"Жоба":"Draft","Жұмыс":"Working","Дайын":"Ready","Басым":"Priority","Ашық":"Open","Қаралуда":"Under review","Қабылданды":"Accepted","Қабылданбады":"Rejected"
+}};
+const IM_KK={};Object.keys(IM_I18N.ru).forEach(k=>IM_KK[k]=k);
+function imTranslateText(text,l){
+ if(l==="kk")return text;
+ const d=IM_I18N[l]||{};
+ let out=text;
+ Object.keys(d).sort((a,b)=>b.length-a.length).forEach(k=>{out=out.split(k).join(d[k])});
+ return out;
+}
+function applyUILanguage(l){
+ document.documentElement.lang=l;
+ document.querySelectorAll("body *").forEach(el=>{
+   if(["SCRIPT","STYLE","OPTION"].includes(el.tagName))return;
+   [...el.childNodes].filter(n=>n.nodeType===3&&n.nodeValue.trim()).forEach(n=>{
+     if(!n.__kk)n.__kk=n.nodeValue;
+     n.nodeValue=imTranslateText(n.__kk,l);
+   });
+ });
+ document.querySelectorAll("input[placeholder],textarea[placeholder]").forEach(el=>{
+   if(!el.dataset.kkph)el.dataset.kkph=el.placeholder;
+   let ph=el.dataset.kkph;
+   const phMap={
+    "Мысалы: Асылай Құралбай":{ru:"Например: Асылай Куралбай",en:"Example: Assylay Kuralbay"},
+    "Физика-Информатика":{ru:"Физика-Информатика",en:"Physics-Informatics"},
+    "Мысалы: Студенттердің практикаға өтініш беру процесін жеңілдеткіміз келеді.":{ru:"Например: хотим упростить процесс подачи заявок студентов на практику.",en:"Example: we want to simplify the student internship application process."},
+    "JavaScript, UI/UX":{ru:"JavaScript, UI/UX",en:"JavaScript, UI/UX"},
+    "Сұрағыңызды жазыңыз...":{ru:"Напишите вопрос...",en:"Type your question..."}
+   };
+   el.placeholder=l==="kk"?ph:(phMap[ph]?.[l]||imTranslateText(ph,l));
+ });
+ if($("langSelect"))$("langSelect").value=l;
+}
+const __oldRenderAll=renderAll;
+renderAll=function(){__oldRenderAll();setTimeout(()=>applyUILanguage(localStorage.getItem("im_lang")||"kk"),0)}
+
 function toggleAI(){$("ai").classList.toggle("open")}
 function sendAI(){let q=$("aiInput").value.trim();if(!q)return;let box=$("aiMsgs");box.innerHTML+=`<div class="msg me">${esc(q)}</div>`;$("aiInput").value="";let x=q.toLowerCase(),a=x.includes("proposal")||x.includes("ұсыныс")?"Proposal-да шешім идеясы, жоспар, технология және prototype/GitHub сілтемесін көрсетіңіз.":x.includes("рейтинг")||x.includes("баға")?"Студенттер бір-бірін 1–5 баллмен бағалай алады. Баға мен пікір профильде кім жазғанымен бірге көрінеді.":x.includes("task")||x.includes("тапсыр")?"Бизнес тапсырма құрады. Студент оны көріп, өзгерте алмайды, тек proposal жібереді.":"IdeaMatch-та бизнес және студент рөлдері бөлек. Сұрағыңызды Task Card, proposal, профиль немесе рейтинг бойынша нақтылай аласыз.";setTimeout(()=>{box.innerHTML+=`<div class="msg bot">${a}</div>`;box.scrollTop=box.scrollHeight},150)}
-document.documentElement.style.fontSize=fontScale+"%";$("langSelect").value=localStorage.getItem("im_lang")||"kk";pickRole(selectedRole);if(user)start();
+document.documentElement.style.fontSize=fontScale+"%";const initialLang=localStorage.getItem("im_lang")||"kk";$("langSelect").value=initialLang;pickRole(selectedRole);if(user)start();setTimeout(()=>applyUILanguage(initialLang),0);
 </script>
 </body>
 </html>
