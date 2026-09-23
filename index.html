@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="kk">
 <head>
+<<<<<<< HEAD
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>IdeaMatch</title>
 <style>
@@ -52,3 +53,978 @@ function renderProposals(){proposals.innerHTML=''}
 function renderProposals(){let e=document.getElementById('proposals');e.innerHTML=proposals.length?proposals.map((p,i)=>`<div class=review><span class=pill>${p.status}</span><h3>${p.team} → ${p.task}</h3><p>${p.idea}</p>${p.status==='Күтуде'?`<button class=success onclick="decision(${i},'Қабылданды')">Accept</button> <button class=danger onclick="decision(${i},'Қабылданбады')">Reject</button>`:''}</div>`).join(''):'Әзірге proposal жоқ.'}
 function decision(i,s){proposals[i].status=s;renderProposals();toast('Шешім: '+s)}function addReview(){reviews.unshift({target:reviewTarget.value,score:reviewScore.value,text:reviewText.value});renderReviews();toast('Пікір сақталды')}function renderReviews(){document.getElementById('reviews').innerHTML=reviews.map(r=>`<div class=review><b>${r.target}</b> <span class=stars>${'★'.repeat(+r.score)}</span><p>${r.text}</p></div>`).join('')||'<p class=muted>Жаңа пікір қалдыруға болады.</p>'}function toast(t){let e=document.getElementById('toast');e.textContent=t;e.style.display='block';setTimeout(()=>e.style.display='none',1800)}renderCatalog();renderProfiles();renderDeadlines();
 </script></body></html>
+=======
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Sana TaskArena</title>
+
+<style>
+:root{
+  --bg:#f6f7fb;
+  --card:#fff;
+  --ink:#172033;
+  --muted:#6b7280;
+  --line:#e5e7eb;
+  --accent:#5b5bd6;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:Inter,Arial,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+}
+
+header{
+  padding:20px 5vw;
+  background:#111827;
+  color:white;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header b{font-size:20px}
+header span{color:#c7d2fe}
+
+.wrap{
+  max-width:1100px;
+  margin:28px auto;
+  padding:0 18px;
+}
+
+.tabs{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+}
+
+.tabs button,button{
+  border:0;
+  border-radius:10px;
+  padding:11px 15px;
+  cursor:pointer;
+  font-weight:700;
+}
+
+.tabs button{background:#e9eaf7}
+
+.tabs button.active{
+  background:var(--accent);
+  color:white;
+}
+
+.panel{display:none}
+.panel.active{display:block}
+
+.card{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+  box-shadow:0 5px 20px #1118270a;
+}
+
+h1,h2,h3{margin-top:0}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:14px;
+}
+
+label{
+  display:block;
+  font-size:13px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+
+input,textarea,select{
+  width:100%;
+  padding:11px;
+  border:1px solid #d1d5db;
+  border-radius:9px;
+  font:inherit;
+}
+
+textarea{min-height:92px}
+
+.primary{
+  background:var(--accent);
+  color:white;
+}
+
+.success{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.danger{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.score{
+  font-size:48px;
+  font-weight:900;
+}
+
+.bar{
+  height:12px;
+  background:#e5e7eb;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.bar i{
+  display:block;
+  height:100%;
+  background:var(--accent);
+  width:0;
+  transition:.4s;
+}
+
+.pill{
+  display:inline-block;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#eef2ff;
+  color:#3730a3;
+  font-size:12px;
+  font-weight:800;
+}
+
+.muted{color:var(--muted)}
+
+.q{
+  padding:12px;
+  border-left:4px solid var(--accent);
+  background:#f5f3ff;
+  margin:8px 0;
+  border-radius:8px;
+}
+
+.questlab{
+  background:linear-gradient(135deg,#eef2ff,#f5f3ff);
+  border:1px solid #c7d2fe;
+  border-radius:18px;
+  padding:22px;
+}
+
+.quest-top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:20px;
+  flex-wrap:wrap;
+}
+
+.xp-number{
+  font-size:38px;
+  font-weight:900;
+  color:var(--accent);
+}
+
+.dna{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:10px;
+  margin-top:18px;
+}
+
+.dna-item{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:13px;
+}
+
+.dna-item b{
+  display:block;
+  font-size:12px;
+  margin-bottom:8px;
+}
+
+.dna-mini{
+  height:8px;
+  background:#e5e7eb;
+  border-radius:99px;
+  overflow:hidden;
+  margin-bottom:7px;
+}
+
+.dna-mini i{
+  display:block;
+  height:100%;
+  background:#5b5bd6;
+}
+
+.aihint{
+  margin-top:20px;
+  padding:15px;
+  background:white;
+  border-left:4px solid var(--accent);
+  border-radius:10px;
+}
+
+.evolution{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  gap:15px;
+  align-items:center;
+  margin-top:15px;
+}
+
+.evo{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:15px;
+  min-height:120px;
+}
+
+.before{border-color:#fecaca}
+.after{border-color:#bbf7d0}
+
+.arrow{
+  font-size:30px;
+  font-weight:900;
+  color:var(--accent);
+}
+
+.task{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:12px;
+  align-items:center;
+}
+
+.catalog-score{
+  font-size:28px;
+  font-weight:900;
+}
+
+.proposal{
+  border-top:1px solid var(--line);
+  padding-top:14px;
+  margin-top:14px;
+}
+
+.toast{
+  position:fixed;
+  right:18px;
+  bottom:18px;
+  background:#111827;
+  color:white;
+  padding:12px 16px;
+  border-radius:10px;
+  display:none;
+}
+
+@media(max-width:700px){
+  .grid,.evolution,.task{
+    grid-template-columns:1fr;
+  }
+  .arrow{
+    text-align:center;
+    transform:rotate(90deg);
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <b>AI Sana <span>TaskArena</span></b>
+  <small>Gamified Business Tasks MVP</small>
+</header>
+
+<div class="wrap">
+
+<div class="tabs">
+  <button class="active" data-tab="create">1. Business Task</button>
+  <button data-tab="rating">2. Rating</button>
+  <button data-tab="quest">3. Quest Lab</button>
+  <button data-tab="catalog">4. Catalog</button>
+  <button data-tab="team">5. Team Proposal</button>
+  <button data-tab="business">6. Business Decision</button>
+</div>
+
+<section id="create" class="panel active">
+
+<div class="card">
+  <h2>Бизнес-міндетті сипаттаңыз</h2>
+  <p class="muted">
+    Қысқа сипаттама енгізіңіз. AI жетіспейтін ақпаратты анықтап,
+    нақтылаушы сұрақтар ұсынады.
+  </p>
+
+  <textarea id="raw">Студенттердің практикалық тапсырмаларды таңдауын жақсартқымыз келеді.</textarea>
+
+  <br><br>
+
+  <button class="primary" onclick="analyze()">
+    AI арқылы талдау
+  </button>
+</div>
+
+<div id="clarify" class="card" style="display:none">
+  <h3>AI нақтылаушы сұрақтары</h3>
+
+  <div id="questions"></div>
+
+  <div class="grid">
+    <div>
+      <label>Қолжетімді деректер / материалдар</label>
+      <textarea id="data">5 мысал тапсырма және команда профильдері бар</textarea>
+    </div>
+
+    <div>
+      <label>Күтілетін нәтиже</label>
+      <textarea id="result">Жұмыс істейтін веб MVP және 5 минуттық demo</textarea>
+    </div>
+
+    <div>
+      <label>Табыс критерийлері</label>
+      <textarea id="success">Тапсырма жарияланып, команда proposal жіберіп, бизнес шешім қабылдайды</textarea>
+    </div>
+
+    <div>
+      <label>Шектеулер</label>
+      <textarea id="constraints">5 сағат; веб; күрделі авторизациясыз</textarea>
+    </div>
+
+    <div>
+      <label>Пайдаланушылар</label>
+      <input id="users" value="Бизнес өкілдері және студенттік командалар">
+    </div>
+
+    <div>
+      <label>Бизнеспен байланыс</label>
+      <input id="contact" value="Demo кезінде кері байланыс және қолмен таңдау">
+    </div>
+  </div>
+
+  <br>
+
+  <button class="primary" onclick="buildCard()">
+    Task Card құру және растау
+  </button>
+</div>
+
+<div id="taskcard" class="card" style="display:none"></div>
+
+</section>
+
+<section id="rating" class="panel">
+
+<div class="card">
+  <h2>Task Readiness Rating</h2>
+
+  <div class="score">
+    <span id="score">0</span>/100
+  </div>
+
+  <div class="bar">
+    <i id="scorebar"></i>
+  </div>
+
+  <p>
+    <span class="pill" id="level">Жоба</span>
+  </p>
+
+  <div id="breakdown"></div>
+
+  <h3>Қалай жақсартуға болады?</h3>
+
+  <div id="missing" class="muted">
+    Алдымен Task Card жасаңыз.
+  </div>
+</div>
+
+</section>
+
+<section id="quest" class="panel">
+
+<div class="questlab">
+
+  <div class="quest-top">
+    <div>
+      <span class="pill">GAMIFICATION</span>
+      <h2 style="margin-top:10px">Challenge DNA Quest Lab</h2>
+
+      <p class="muted">
+        Тапсырманың әлсіз бөлімдерін толықтырып,
+        дайындық деңгейін көтеріңіз.
+      </p>
+    </div>
+
+    <div style="text-align:center">
+      <div class="xp-number" id="questScore">0 XP</div>
+      <span class="pill" id="questLevel">DRAFT</span>
+    </div>
+  </div>
+
+  <hr style="border:0;border-top:1px solid #d9ddf4;margin:20px 0">
+
+  <h3>Challenge DNA</h3>
+
+  <div id="dnaMap" class="dna"></div>
+
+  <div class="aihint">
+    <b>AI Next Best Action</b>
+
+    <div id="nextAction" class="muted" style="margin-top:6px">
+      Алдымен Task Card құрыңыз.
+    </div>
+  </div>
+
+  <h3 style="margin-top:25px">Challenge Evolution</h3>
+
+  <div class="evolution">
+
+    <div class="evo before">
+      <b>BEFORE</b>
+      <p id="beforeQuest" class="muted">Бастапқы сипаттама</p>
+      <strong id="beforeQuestScore">0/100</strong>
+    </div>
+
+    <div class="arrow">→</div>
+
+    <div class="evo after">
+      <b>AFTER</b>
+      <p id="afterQuest" class="muted">Толық Challenge Card</p>
+      <strong id="afterQuestScore">0/100</strong>
+    </div>
+
+  </div>
+
+  <br>
+
+  <button class="primary" onclick="boostWeakest()">
+    Әлсіз блокты күшейту
+  </button>
+
+</div>
+
+</section>
+
+<section id="catalog" class="panel">
+
+<div class="card">
+  <h2>Ортақ каталог</h2>
+
+  <p class="muted">
+    Барлық жарияланған бизнес-міндеттер студенттік командаларға ашық.
+  </p>
+
+  <div class="grid">
+    <select id="filter" onchange="renderCatalog()">
+      <option value="all">Барлық деңгей</option>
+      <option>Жоба</option>
+      <option>Жұмыс</option>
+      <option>Дайын</option>
+      <option>Басым</option>
+    </select>
+
+    <select id="sort" onchange="renderCatalog()">
+      <option value="desc">Рейтинг: жоғарыдан</option>
+      <option value="asc">Рейтинг: төменнен</option>
+    </select>
+  </div>
+</div>
+
+<div id="catalogList"></div>
+
+</section>
+
+<section id="team" class="panel">
+
+<div class="card">
+  <h2>Команда ұсынысы</h2>
+
+  <label>Тапсырма</label>
+  <select id="proposalTask"></select>
+
+  <br><br>
+
+  <label>Команда атауы</label>
+  <input id="teamName" value="Alem Coders">
+
+  <br><br>
+
+  <label>Шешім идеясы</label>
+  <textarea id="idea">AI көмегімен тапсырманы нақтылап, рейтинг беретін және каталогта көрсететін платформа.</textarea>
+
+  <label>Жоспар</label>
+  <textarea id="plan">Task input → AI clarification → Rating → Quest Lab → Catalog → Proposal → Business decision</textarea>
+
+  <label>Prototype link</label>
+  <input id="link" value="https://example.com/prototype">
+
+  <br><br>
+
+  <button class="primary" onclick="submitProposal()">
+    Proposal жіберу
+  </button>
+</div>
+
+</section>
+
+<section id="business" class="panel">
+
+<div class="card">
+  <h2>Business Dashboard</h2>
+
+  <p class="muted">
+    Соңғы шешімді AI емес, бизнес өкілі өзі қабылдайды.
+  </p>
+
+  <div id="proposals"></div>
+</div>
+
+</section>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+
+let current=null;
+let proposals=[];
+
+let tasks=[
+  {title:"Campus Navigation Assistant",score:74,level:"Дайын"},
+  {title:"Internship Feedback Analyzer",score:58,level:"Жұмыс"},
+  {title:"Library Queue Optimizer",score:91,level:"Басым"},
+  {title:"Student Event Finder",score:43,level:"Жұмыс"}
+];
+
+const weights=[
+  ["Контекст және қажеттілік",20],
+  ["Деректер мен материалдар",20],
+  ["Күтілетін нәтиже",15],
+  ["Табыс критерийлері",15],
+  ["Шектеулер",10],
+  ["Пайдаланушылар",10],
+  ["Бизнеспен байланыс",10]
+];
+
+document.querySelectorAll(".tabs button").forEach(button=>{
+  button.onclick=()=>{
+    document.querySelectorAll(".tabs button,.panel")
+      .forEach(x=>x.classList.remove("active"));
+
+    button.classList.add("active");
+    document.getElementById(button.dataset.tab).classList.add("active");
+
+    if(button.dataset.tab==="quest") renderQuest();
+    if(button.dataset.tab==="catalog") renderCatalog();
+    if(button.dataset.tab==="team") fillTasks();
+    if(button.dataset.tab==="business") renderProposals();
+  };
+});
+
+function analyze(){
+  let text=document.getElementById("raw").value.trim();
+
+  if(!text){
+    toast("Сипаттама енгізіңіз");
+    return;
+  }
+
+  document.getElementById("clarify").style.display="block";
+
+  let questions=[
+    "Нақты қандай мәселені шешкіңіз келеді?",
+    "Шешімнің негізгі пайдаланушылары кім?",
+    "Нәтиженің сәтті болғанын қалай өлшейсіз?"
+  ];
+
+  let answers=[
+    "Студенттер тапсырманың мақсаты мен күрделілігін бірден түсінбейді",
+    "Бизнес өкілдері және студенттік командалар",
+    "Толық сценарий қателіксіз жұмыс істеуі керек"
+  ];
+
+  document.getElementById("questions").innerHTML=
+    questions.map((q,i)=>`
+      <div class="q">
+        <b>${i+1}. ${q}</b>
+        <input id="q${i}" value="${answers[i]}" style="margin-top:8px">
+      </div>
+    `).join("");
+
+  toast("AI 3 нақтылаушы сұрақ құрды");
+}
+
+function buildCard(){
+  if(!document.getElementById("q0")){
+    toast("Алдымен AI арқылы талдау жасаңыз");
+    return;
+  }
+
+  current={
+    title:"Практикалық тапсырмаларды геймификациялау",
+    context:document.getElementById("raw").value+" "+document.getElementById("q0").value,
+    data:document.getElementById("data").value,
+    result:document.getElementById("result").value,
+    success:document.getElementById("success").value,
+    constraints:document.getElementById("constraints").value,
+    users:document.getElementById("users").value,
+    contact:document.getElementById("contact").value
+  };
+
+  calc();
+
+  let card=document.getElementById("taskcard");
+  card.style.display="block";
+
+  card.innerHTML=`
+    <h2>Расталған Task Card</h2>
+    <span class="pill">${current.level} · ${current.score}/100</span>
+
+    <h3 style="margin-top:15px">${current.title}</h3>
+
+    <p><b>Контекст:</b> ${current.context}</p>
+    <p><b>Пайдаланушылар:</b> ${current.users}</p>
+    <p><b>Деректер:</b> ${current.data}</p>
+    <p><b>Күтілетін нәтиже:</b> ${current.result}</p>
+    <p><b>Табыс критерийлері:</b> ${current.success}</p>
+    <p><b>Шектеулер:</b> ${current.constraints}</p>
+    <p><b>Байланыс:</b> ${current.contact}</p>
+
+    <button class="primary" onclick="publish()">
+      Каталогқа жариялау
+    </button>
+  `;
+
+  renderQuest();
+  toast("Task Card құрылды");
+}
+
+function calc(){
+  let values=[
+    current.context,
+    current.data,
+    current.result,
+    current.success,
+    current.constraints,
+    current.users,
+    current.contact
+  ];
+
+  let score=0;
+  let html="";
+  let missing=[];
+
+  values.forEach((value,i)=>{
+    let ok=value && value.trim().length>8;
+    let points=ok?weights[i][1]:0;
+
+    score+=points;
+
+    html+=`
+      <p>
+        ${weights[i][0]}:
+        <b>${points}/${weights[i][1]}</b>
+      </p>
+    `;
+
+    if(!ok) missing.push(weights[i][0]);
+  });
+
+  current.score=score;
+
+  current.level=
+    score<40 ? "Жоба" :
+    score<70 ? "Жұмыс" :
+    score<90 ? "Дайын" :
+    "Басым";
+
+  document.getElementById("score").textContent=score;
+  document.getElementById("scorebar").style.width=score+"%";
+  document.getElementById("level").textContent=current.level;
+  document.getElementById("breakdown").innerHTML=html;
+
+  document.getElementById("missing").textContent=
+    missing.length
+    ? "Толықтырыңыз: "+missing.join(", ")
+    : "Карточка толық. Жариялауға дайын.";
+}
+
+function renderQuest(){
+  let map=document.getElementById("dnaMap");
+
+  if(!current){
+    document.getElementById("questScore").textContent="0 XP";
+    document.getElementById("questLevel").textContent="DRAFT";
+
+    map.innerHTML=weights.map(item=>`
+      <div class="dna-item">
+        <b>${item[0]}</b>
+        <div class="dna-mini">
+          <i style="width:0%"></i>
+        </div>
+        <small>0/${item[1]} XP</small>
+      </div>
+    `).join("");
+
+    document.getElementById("nextAction").textContent=
+      "Business Task бөлімінде Task Card құрыңыз.";
+
+    return;
+  }
+
+  let values=[
+    current.context,
+    current.data,
+    current.result,
+    current.success,
+    current.constraints,
+    current.users,
+    current.contact
+  ];
+
+  let missing=[];
+
+  map.innerHTML=values.map((value,i)=>{
+    let ok=value && value.trim().length>8;
+
+    if(!ok) missing.push(i);
+
+    return `
+      <div class="dna-item">
+        <b>${weights[i][0]}</b>
+        <div class="dna-mini">
+          <i style="width:${ok?100:0}%"></i>
+        </div>
+        <small>${ok?weights[i][1]:0}/${weights[i][1]} XP</small>
+      </div>
+    `;
+  }).join("");
+
+  document.getElementById("questScore").textContent=current.score+" XP";
+  document.getElementById("questLevel").textContent=current.level.toUpperCase();
+
+  document.getElementById("beforeQuest").textContent=
+    document.getElementById("raw").value;
+
+  document.getElementById("beforeQuestScore").textContent="20/100";
+  document.getElementById("afterQuestScore").textContent=current.score+"/100";
+
+  document.getElementById("afterQuest").textContent=
+    current.score>=90
+    ? "Challenge студенттік командамен жұмысқа дайын."
+    : "Challenge әлі де толықтырылуы мүмкін.";
+
+  if(missing.length){
+    let i=missing[0];
+
+    document.getElementById("nextAction").textContent=
+      weights[i][0]+" блогын нақтылаңыз. +"+weights[i][1]+" XP";
+  }else{
+    document.getElementById("nextAction").textContent=
+      "Барлық бөлім толық. Challenge жариялауға дайын.";
+  }
+}
+
+function boostWeakest(){
+  if(!current){
+    toast("Алдымен Task Card құрыңыз");
+    return;
+  }
+
+  let fields=[
+    "q0",
+    "data",
+    "result",
+    "success",
+    "constraints",
+    "users",
+    "contact"
+  ];
+
+  let values=[
+    current.context,
+    current.data,
+    current.result,
+    current.success,
+    current.constraints,
+    current.users,
+    current.contact
+  ];
+
+  let index=values.findIndex(value=>!value || value.trim().length<=8);
+
+  if(index<0){
+    toast("Challenge толық дайын");
+    return;
+  }
+
+  let demo=[
+    "Студенттер тапсырманың мақсаты мен күрделілігін бірден түсінбейді",
+    "5 demo тапсырма және команда профильдері бар",
+    "Жұмыс істейтін веб MVP және 5 минуттық demo",
+    "Task жариялау, proposal жіберу және бизнес шешімін көрсету",
+    "5 сағат, web MVP, күрделі авторизациясыз",
+    "Бизнес өкілдері және студенттік командалар",
+    "Demo кезінде кері байланыс және қолмен таңдау"
+  ];
+
+  let element=document.getElementById(fields[index]);
+
+  if(element){
+    element.value=demo[index];
+  }
+
+  buildCard();
+  renderQuest();
+
+  toast("Бөлім толықтырылды");
+}
+
+function publish(){
+  if(!current){
+    toast("Алдымен Task Card құрыңыз");
+    return;
+  }
+
+  if(!tasks.some(task=>task.title===current.title)){
+    tasks.push({
+      title:current.title,
+      score:current.score,
+      level:current.level
+    });
+  }
+
+  toast("Тапсырма каталогқа жарияланды");
+
+  document.querySelector('[data-tab="catalog"]').click();
+}
+
+function renderCatalog(){
+  let filter=document.getElementById("filter").value;
+  let sort=document.getElementById("sort").value;
+
+  let array=tasks
+    .filter(task=>filter==="all" || task.level===filter)
+    .sort((a,b)=>sort==="desc" ? b.score-a.score : a.score-b.score);
+
+  document.getElementById("catalogList").innerHTML=
+    array.map(task=>`
+      <div class="card task">
+        <div>
+          <span class="pill">${task.level}</span>
+          <h3 style="margin:8px 0">${task.title}</h3>
+          <span class="muted">Студенттік командаларға ашық</span>
+        </div>
+
+        <div>
+          <span class="catalog-score">${task.score}</span>/100
+        </div>
+      </div>
+    `).join("");
+}
+
+function fillTasks(){
+  document.getElementById("proposalTask").innerHTML=
+    tasks.map(task=>`
+      <option>${task.title}</option>
+    `).join("");
+}
+
+function submitProposal(){
+  let team=document.getElementById("teamName").value.trim();
+  let idea=document.getElementById("idea").value.trim();
+
+  if(!team || !idea){
+    toast("Команда атауы мен идеяны толтырыңыз");
+    return;
+  }
+
+  proposals.push({
+    task:document.getElementById("proposalTask").value,
+    team:team,
+    idea:idea,
+    plan:document.getElementById("plan").value,
+    link:document.getElementById("link").value,
+    status:"Күтуде"
+  });
+
+  toast("Proposal бизнеске жіберілді");
+
+  document.querySelector('[data-tab="business"]').click();
+}
+
+function renderProposals(){
+  let container=document.getElementById("proposals");
+
+  if(!proposals.length){
+    container.innerHTML='<p class="muted">Әзірге proposal жоқ.</p>';
+    return;
+  }
+
+  container.innerHTML=proposals.map((proposal,index)=>`
+    <div class="proposal">
+
+      <span class="pill">${proposal.status}</span>
+
+      <h3>${proposal.team} → ${proposal.task}</h3>
+
+      <p><b>Идея:</b> ${proposal.idea}</p>
+      <p><b>Жоспар:</b> ${proposal.plan}</p>
+      <p><b>Prototype:</b> ${proposal.link}</p>
+
+      ${
+        proposal.status==="Күтуде"
+        ? `
+          <button class="success"
+            onclick="decision(${index},'Қабылданды')">
+            Accept
+          </button>
+
+          <button class="danger"
+            onclick="decision(${index},'Қабылданбады')">
+            Reject
+          </button>
+        `
+        : `<p><b>Бизнес шешімі: ${proposal.status}</b></p>`
+      }
+
+    </div>
+  `).join("");
+}
+
+function decision(index,status){
+  proposals[index].status=status;
+  renderProposals();
+  toast("Бизнес шешімі: "+status);
+}
+
+function toast(text){
+  let element=document.getElementById("toast");
+
+  element.textContent=text;
+  element.style.display="block";
+
+  setTimeout(()=>{
+    element.style.display="none";
+  },1800);
+}
+
+renderCatalog();
+renderQuest();
+
+</script>
+
+</body>
+</html>
+>>>>>>> b6f7ff0e7e6987ab0b03e795667e73a447628028
