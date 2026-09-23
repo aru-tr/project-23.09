@@ -48,11 +48,17 @@ body.contrast .primary{background:#ff0!important;color:#000!important}
  <div class="auth-card">
   <div class="auth-intro">
    <div class="brand">IdeaMatch</div>
-   <h1>Бизнес идеясы мен студенттік шешімді байланыстыратын платформа</h1>
+   <h1>Идеяны мүмкіндікке айналдыратын орта</h1>
    <p style="color:#cbd5e1">Бизнес нақты тапсырма жариялайды. Студент тапсырманы таңдап, шешім ұсынады. Әр қолданушы өз рөліне сәйкес мүмкіндіктерді ғана пайдаланады.</p>
   </div>
   <div class="auth-form">
+    <div class="row" style="justify-content:flex-end;margin-bottom:14px">
+      <select id="authLangSelect" style="width:auto" onchange="setLanguage(this.value)" aria-label="Language">
+        <option value="kk">KZ</option><option value="ru">RU</option><option value="en">EN</option>
+      </select>
+    </div>
    <h2>Профильге кіру</h2>
+    <div class="notice" id="motivationText"><b>Идеядан — нақты мүмкіндікке.</b><br>Бизнеске шешім, студентке тәжірибе: IdeaMatch-та әр жақсы идея өз командасын таба алады.</div>
    <p class="muted">Demo нұсқада аккаунт браузерде сақталады.</p>
    <div class="role-cards">
     <button class="role role-choice active" data-role="student" onclick="pickRole('student')"><b>Студент</b><br><span class="small muted">Тапсырма таңдау, proposal, бағалау</span></button>
@@ -125,8 +131,10 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&
 let selectedRole=localStorage.getItem("im_selected_role")||"student";
 let user=JSON.parse(localStorage.getItem("im_user")||"null");
 let tasks=JSON.parse(localStorage.getItem("im_tasks")||"null")||[
- {id:1,title:"Практикаға өтініш беру процесін жеңілдету",company:"TechNova",owner:"Айдана Серік",ownerId:"demo-business-1",desc:"Студенттердің практикаға өтініш беру жолын жеңілдететін цифрлық шешім қажет.",deadline:"2026-10-10",skills:["UI/UX","JavaScript"],score:82,status:"Ашық"},
- {id:2,title:"Клиент пікірлерін талдау",company:"QazMarket",owner:"Данияр Асқар",ownerId:"demo-business-2",desc:"Клиент пікірлерін жинап, негізгі мәселелерді көрсететін прототип.",deadline:"2026-10-18",skills:["Python","Analytics"],score:74,status:"Ашық"}
+ {id:1,title:"Практикаға өтініш беру процесін жеңілдету",company:"TechNova",owner:"Айдана Серік",ownerId:"demo-business-1",desc:"Студенттердің практикаға өтініш беру жолын жеңілдететін цифрлық шешім қажет.",users:"Университет студенттері және HR мамандары",data:"Өтініш формалары, вакансиялар тізімі және demo студент профильдері",constraints:"Web MVP, 5 сағаттық прототип, жеке деректерді жарияламау",expected:"Студент практика орнын тауып, бір интерфейстен өтініш жібере алады",success:"Өтініш беру flow-ы толық жұмыс істейді және 3 қадамнан аспайды",contact:"Айдана Серік, аптасына 2 рет feedback",deadline:"2026-10-10",skills:["UI/UX","JavaScript"],score:100,status:"Ашық",industry:"EdTech"},
+ {id:2,title:"Клиент пікірлерін талдау",company:"QazMarket",owner:"Данияр Асқар",ownerId:"demo-business-2",desc:"Клиент пікірлерін жинап, негізгі мәселелерді көрсететін прототип.",users:"Маркетинг және customer support командасы",data:"Анонимдендірілген 500 demo пікір, категориялар",constraints:"Жеке дерексіз, нәтижені dashboard-та көрсету",expected:"Пікірлерді тақырыптарға бөліп, негізгі проблемаларды көрсету",success:"Кемінде 5 категория және әр категорияға қысқа summary",contact:"Данияр Асқар, demo кезінде feedback",deadline:"2026-10-18",skills:["Python","Analytics"],score:100,status:"Ашық",industry:"E-commerce"},
+ {id:3,title:"Campus Navigation Assistant",company:"Alem University",owner:"Мадина Ермек",ownerId:"demo-business-3",desc:"Жаңа студенттерге кампуста аудиториялар мен қызметтерді тез табуға көмектесу.",users:"1-курс студенттері және қонақтар",data:"Корпус картасы, аудиториялар тізімі, қызмет нүктелері",constraints:"Mobile-first web, GPS міндетті емес",expected:"Іздеу және маршрутты түсінікті көрсету",success:"Demo-да 5 негізгі нүктеге маршрут табу",contact:"Мадина Ермек, күнделікті 15 минут feedback",deadline:"2026-10-22",skills:["JavaScript","UX","Maps"],score:100,status:"Ашық",industry:"Education"},
+ {id:4,title:"Шағын бизнеске тапсырыс dashboard",company:"Nomad Coffee",owner:"Арман Қали",ownerId:"demo-business-4",desc:"Күнделікті тапсырыстар мен ең танымал өнімдерді бір экранда бақылау.",users:"Кафе менеджері және иесі",data:"Demo CSV: күн, өнім, саны, сома",constraints:"Қарапайым web dashboard, күрделі авторизациясыз",expected:"Сату динамикасы, top өнімдер және күндік summary",success:"CSV demo деректерінен 3 негізгі көрсеткіш дұрыс есептеледі",contact:"Арман Қали, финалдық demo feedback",deadline:"2026-10-25",skills:["JavaScript","Charts","Data"],score:100,status:"Ашық",industry:"Retail"}
 ];
 let proposals=JSON.parse(localStorage.getItem("im_proposals")||"[]");
 let peerReviews=JSON.parse(localStorage.getItem("im_peer_reviews")||"[]");
@@ -338,12 +346,18 @@ function toggleAccess(){$("accessPanel").classList.toggle("open")}
 let fontScale=Number(localStorage.getItem("im_font")||100);
 function changeFont(n){fontScale=Math.max(80,Math.min(130,fontScale+n*10));document.documentElement.style.fontSize=fontScale+"%";localStorage.setItem("im_font",fontScale)}
 function readPage(){if(!("speechSynthesis" in window))return alert("Бұл браузер мәтінді оқуды қолдамайды.");speechSynthesis.cancel();let u=new SpeechSynthesisUtterance(document.querySelector(".page.active")?.innerText||"");u.lang="kk-KZ";speechSynthesis.speak(u)}
-function setLanguage(l){localStorage.setItem("im_lang",l);if($("langSelect"))$("langSelect").value=l;renderAll();setTimeout(()=>applyUILanguage(l),0)}
+function setLanguage(l){
+ localStorage.setItem("im_lang",l);
+ if($("langSelect"))$("langSelect").value=l;
+ if($("authLangSelect"))$("authLangSelect").value=l;
+ if(user){renderAll()}
+ setTimeout(()=>applyUILanguage(l),0);
+}
 
 const IM_I18N={
 ru:{
 "Басты бет":"Главная","Жаңа тапсырма":"Новая задача","AI рейтинг":"AI-рейтинг","Каталог":"Каталог","Профильдер":"Профили","Студенттер":"Студенты","Дедлайндар":"Дедлайны","Ұсыныстар":"Предложения","Менің ұсыныстарым":"Мои предложения","Пікірлер":"Отзывы","Менің профилім":"Мой профиль",
-"Профильге кіру":"Войти в профиль","Студент":"Студент","Бизнес өкілі":"Представитель бизнеса","Аты-жөні":"Имя и фамилия","Мамандық / команда":"Специальность / команда","Компания атауы":"Название компании","Бизнес саласы":"Сфера бизнеса","Кіру":"Войти","Шығу":"Выйти",
+"Профильге кіру":"Войти в профиль","Идеядан — нақты мүмкіндікке.":"От идеи — к реальной возможности.","Бизнеске шешім, студентке тәжірибе: IdeaMatch-та әр жақсы идея өз командасын таба алады.":"Бизнесу — решение, студенту — опыт: в IdeaMatch каждая сильная идея может найти свою команду.","Идеяны мүмкіндікке айналдыратын орта":"Среда, превращающая идеи в возможности","Студент":"Студент","Бизнес өкілі":"Представитель бизнеса","Аты-жөні":"Имя и фамилия","Мамандық / команда":"Специальность / команда","Компания атауы":"Название компании","Бизнес саласы":"Сфера бизнеса","Кіру":"Войти","Шығу":"Выйти",
 "Қолжетімділік":"Доступность","Жоғары контраст":"Высокий контраст","Қарапайым режим":"Простой режим","Мәтінді оқу":"Прочитать текст","Хабарламалар":"Уведомления",
 "Менің тапсырмаларым":"Мои задачи","Ашық тапсырмалар":"Открытые задачи","Келген ұсыныстар":"Полученные предложения","Бизнес аналитикасы":"Бизнес-аналитика","Бизнес flow":"Сценарий бизнеса","Студент flow":"Сценарий студента",
 "Жаңа бизнес тапсырмасы":"Новая бизнес-задача","Бастапқы бизнес мәселесі":"Исходная бизнес-проблема","AI нақтылау сұрақтары":"Уточняющие вопросы AI","Task Card атауы":"Название Task Card","Пайдаланушылар":"Пользователи","Деректер":"Данные","Шектеулер":"Ограничения","Күтілетін нәтиже":"Ожидаемый результат","Табыс критерийлері":"Критерии успеха","Бизнес контакті":"Контакт бизнеса","Дедлайн":"Дедлайн","Қажетті skills":"Необходимые навыки","Task Card жариялау":"Опубликовать Task Card",
@@ -354,7 +368,7 @@ ru:{
 },
 en:{
 "Басты бет":"Dashboard","Жаңа тапсырма":"New task","AI рейтинг":"AI rating","Каталог":"Catalog","Профильдер":"Profiles","Студенттер":"Students","Дедлайндар":"Deadlines","Ұсыныстар":"Proposals","Менің ұсыныстарым":"My proposals","Пікірлер":"Reviews","Менің профилім":"My profile",
-"Профильге кіру":"Sign in","Студент":"Student","Бизнес өкілі":"Business representative","Аты-жөні":"Full name","Мамандық / команда":"Major / team","Компания атауы":"Company name","Бизнес саласы":"Business industry","Кіру":"Sign in","Шығу":"Sign out",
+"Профильге кіру":"Sign in","Идеядан — нақты мүмкіндікке.":"From idea to real opportunity.","Бизнеске шешім, студентке тәжірибе: IdeaMatch-та әр жақсы идея өз командасын таба алады.":"Solutions for business, experience for students: on IdeaMatch every strong idea can find its team.","Идеяны мүмкіндікке айналдыратын орта":"A space that turns ideas into opportunities","Студент":"Student","Бизнес өкілі":"Business representative","Аты-жөні":"Full name","Мамандық / команда":"Major / team","Компания атауы":"Company name","Бизнес саласы":"Business industry","Кіру":"Sign in","Шығу":"Sign out",
 "Қолжетімділік":"Accessibility","Жоғары контраст":"High contrast","Қарапайым режим":"Simple mode","Мәтінді оқу":"Read aloud","Хабарламалар":"Notifications",
 "Менің тапсырмаларым":"My tasks","Ашық тапсырмалар":"Open tasks","Келген ұсыныстар":"Received proposals","Бизнес аналитикасы":"Business analytics","Бизнес flow":"Business flow","Студент flow":"Student flow",
 "Жаңа бизнес тапсырмасы":"New business task","Бастапқы бизнес мәселесі":"Initial business problem","AI нақтылау сұрақтары":"AI clarifying questions","Task Card атауы":"Task Card title","Пайдаланушылар":"Users","Деректер":"Data","Шектеулер":"Constraints","Күтілетін нәтиже":"Expected result","Табыс критерийлері":"Success criteria","Бизнес контакті":"Business contact","Дедлайн":"Deadline","Қажетті skills":"Required skills","Task Card жариялау":"Publish Task Card",
@@ -392,14 +406,14 @@ function applyUILanguage(l){
    };
    el.placeholder=l==="kk"?ph:(phMap[ph]?.[l]||imTranslateText(ph,l));
  });
- if($("langSelect"))$("langSelect").value=l;
+ if($("langSelect"))$("langSelect").value=l; if($("authLangSelect"))$("authLangSelect").value=l;
 }
 const __oldRenderAll=renderAll;
 renderAll=function(){__oldRenderAll();setTimeout(()=>applyUILanguage(localStorage.getItem("im_lang")||"kk"),0)}
 
 function toggleAI(){$("ai").classList.toggle("open")}
 function sendAI(){let q=$("aiInput").value.trim();if(!q)return;let box=$("aiMsgs");box.innerHTML+=`<div class="msg me">${esc(q)}</div>`;$("aiInput").value="";let x=q.toLowerCase(),a=x.includes("proposal")||x.includes("ұсыныс")?"Proposal-да шешім идеясы, жоспар, технология және prototype/GitHub сілтемесін көрсетіңіз.":x.includes("рейтинг")||x.includes("баға")?"Студенттер бір-бірін 1–5 баллмен бағалай алады. Баға мен пікір профильде кім жазғанымен бірге көрінеді.":x.includes("task")||x.includes("тапсыр")?"Бизнес тапсырма құрады. Студент оны көріп, өзгерте алмайды, тек proposal жібереді.":"IdeaMatch-та бизнес және студент рөлдері бөлек. Сұрағыңызды Task Card, proposal, профиль немесе рейтинг бойынша нақтылай аласыз.";setTimeout(()=>{box.innerHTML+=`<div class="msg bot">${a}</div>`;box.scrollTop=box.scrollHeight},150)}
-document.documentElement.style.fontSize=fontScale+"%";const initialLang=localStorage.getItem("im_lang")||"kk";$("langSelect").value=initialLang;pickRole(selectedRole);if(user)start();setTimeout(()=>applyUILanguage(initialLang),0);
+document.documentElement.style.fontSize=fontScale+"%";const initialLang=localStorage.getItem("im_lang")||"kk";$("langSelect").value=initialLang;if($("authLangSelect"))$("authLangSelect").value=initialLang;pickRole(selectedRole);if(user)start();setTimeout(()=>applyUILanguage(initialLang),0);
 </script>
 </body>
 </html>
